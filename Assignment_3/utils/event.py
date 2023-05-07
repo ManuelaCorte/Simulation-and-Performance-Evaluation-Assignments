@@ -2,18 +2,21 @@ from enum import Enum
 import numpy as np
 from queue import PriorityQueue
 
+
 class Event:
-    def __init__(self, type, time, idx = None):
+    def __init__(self, type, time, idx=None):
         self.type = type
         self.time = time
         self.idx = idx
 
     def __str__(self) -> str:
         if self.type == EventType.arrival or self.type == EventType.departure:
-            return f'Event: {self.type} of packet {self.idx} at {self.time}'
-        return f'Event: {self.type}  at {self.time}'
-    
-EventType = Enum('Type', 'start arrival departure stop debug')
+            return f"Event: {self.type} of packet {self.idx} at {self.time}"
+        return f"Event: {self.type}  at {self.time}"
+
+
+EventType = Enum("Type", "start arrival departure stop debug")
+
 
 class EventQueue:
     def __init__(self, simulation_time):
@@ -22,7 +25,7 @@ class EventQueue:
         self.queue.put((simulation_time, Event(EventType.stop, simulation_time, None)))
 
     def __str__(self) -> str:
-        string = ''
+        string = ""
         for event in self.queue.queue:
-            string += ' ' + event.__str__()
+            string += " " + event.__str__()
         return string
