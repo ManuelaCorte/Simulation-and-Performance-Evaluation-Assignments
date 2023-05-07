@@ -1,0 +1,3 @@
+When I'm computng the 99% ci do I still use r0=25 or can I use a bigger one to get a smaller CI?
+Method to compute quantile CI: binomial based, binomial approximation or bootstrapping?
+How to compare JFI and gap since they have different scales?

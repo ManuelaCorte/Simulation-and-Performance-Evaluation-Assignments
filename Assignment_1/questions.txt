@@ -1,0 +1,6 @@
+Can we use RNG already in the language?
+Is visually comparing distributions enough to prove they're identically distributed?
+Can we use uniform distribution provided to sample probabilities
+Extra check exactly N arrivals all before T
+
+Better approximation for x/y by doing z=log(x)-log(y) and then e^z?
