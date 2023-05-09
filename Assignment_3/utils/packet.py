@@ -26,5 +26,5 @@ class Packet:
             else None
         )
 
-    def __str__(self) -> str:
-        return f"Packet {self.idx} arrived at {self.arrival_time}, served at {self.service_time}, departed at {self.departure_time}"
+    # def __str__(self) -> str:
+    #     return f"Packet {self.idx} arrived at {self.arrival_time}, served at {self.service_time}, departed at {self.departure_time}"
