@@ -37,7 +37,7 @@ def simulation_loop(simulation_time, l, mu, gen):
                 queue.queue.put((arr, Event(EventType.arrival, arr, 0)))
                 server_busy = False
                 
-                queue_occupation.loc[0] = [0, 0, 0]
+                queue_occupation.loc['arr'+str(0)] = [0, 0, 0]
                 packets.loc[0] = [0, arr, None, None, None, None]
                 # logging.info(f'Scheduling first arrival at time {arr}')
 
@@ -64,7 +64,7 @@ def simulation_loop(simulation_time, l, mu, gen):
                             ),
                         )
                     )
-                    queue_occupation.loc[current_event.time] = [current_event.time, server_queue.qsize(), server_queue.qsize() +1]
+                    queue_occupation.loc['arr'+str(current_event.idx)] = [current_event.time, server_queue.qsize(), server_queue.qsize() +1]
 
                     logging.info(f"Server free, serving packet {current_event.idx}")
                     packets.loc[current_event.idx]['service_time'] = current_time
@@ -76,7 +76,7 @@ def simulation_loop(simulation_time, l, mu, gen):
                 else:
                     # Server busy, add arrived packet to queue
                     server_queue.put(current_event)
-                    queue_occupation.loc[current_event.time] = [current_event.time, server_queue.qsize(), server_queue.qsize()]
+                    queue_occupation.loc['arr'+str(current_event.idx)] = [current_event.time, server_queue.qsize(), server_queue.qsize() + 1]
                     logging.info(
                         f"Server busy, packet {current_event.idx} added to queue at time {current_event.time}"
                     )
@@ -103,7 +103,7 @@ def simulation_loop(simulation_time, l, mu, gen):
                 
                 # packets[current_event.idx].departure_time = current_event.time
                 if server_queue.empty():
-                    queue_occupation.loc[current_event.time] = [current_event.time, server_queue.qsize(), 0]
+                    queue_occupation.loc['dep'+str(current_event.idx)] = [current_event.time, 0, 0]
 
                     # No package in the queue, free server
                     server_busy = False
@@ -113,7 +113,7 @@ def simulation_loop(simulation_time, l, mu, gen):
                     # queue.queue.put((current_event.time + gen.exponential(1/mu), Event(EventType.departure, current_event.time + gen.exponential(1/mu), current_event.idx )))
                     # logging.info(f'Picking package {current_event.idx} from queue and scheduling its departure')
                     pending_arrival = server_queue.get()
-                    queue_occupation.loc[current_event.time] = [current_event.time, server_queue.qsize(), server_queue.qsize()]
+                    queue_occupation.loc['dep'+str(current_event.idx)] = [current_event.time, server_queue.qsize(), server_queue.qsize() + 1]
                     service_time = gen.exponential(1 / mu)
                     queue.queue.put(
                         (
@@ -153,6 +153,8 @@ def simulation_loop(simulation_time, l, mu, gen):
 
     packets['waiting_time'] = packets['service_time'] - packets['arrival_time']
     packets['response_time'] = packets['departure_time'] - packets['arrival_time']
-    print(packets.head())
-    print(queue_occupation.head())
+    # print(packets.head())
+    # print(queue_occupation.head())
+    packets.to_csv('packets.csv')
+    queue_occupation.to_csv('queue_occupation.csv')
     return packets, queue_occupation
