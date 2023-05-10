@@ -10,7 +10,7 @@ l = 1.5
 mu = 2.5
 rho = l/mu
 # print(f'rho = {rho}')
-simulation_time = 5000
+simulation_time = 2000
 gen = np.random.default_rng(seed=42)
 packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen)
 # check if uniformly distributed
@@ -21,7 +21,7 @@ service_times = packets ["departure_time"][:-1] - packets['service_time'][:-1]
 # df = pd.DataFrame.from_records([packet.__dict__ for packet in packets.values()])
 # print(df.head())
 
-pdplt.autocorrelation_plot(waiting_times)
+pdplt.autocorrelation_plot(packets['response_time'])
 
 f, ax = plt.subplots(4, figsize=(10, 20))
 
@@ -48,15 +48,24 @@ print(test_exp)
 # print(test_unif)
 
 # print(f'Mean service time: {np.mean(service_times)}, mean theoretical: {1/mu}')
-ax[3].plot(queue_occupation['time'], queue_occupation['total_packets'], label='Packets in queue')
-# ax[3].plot(queue_occupation['time'], queue_occupation['total_packets'], label='Total packets')
-ax[3].set_title("Queue occupation")
-ax[3].legend()
-
+occupation =  np.mean(packets['arrival_time']) /np.mean(packets['response_time']) 
+print(f'Occupation: {occupation}, theoretical: {rho}')
 packets_queue = queue_occupation['total_packets'].values[:-1000] * queue_occupation['width'].values[:-1000]
 avg_packets_theory = rho/(1-rho)
-avg_packets_sim = np.sum(packets_queue)/simulation_time
+
+total_width = np.sum(queue_occupation['width'])
+avg_packets_sim = np.sum(packets_queue)/total_width
 ci_amplitude = 1.96*np.std(packets_queue)/np.sqrt(len(packets_queue))
 print(f'Average number of packets in the system (theory): {avg_packets_theory}')
 print(f'Average number of packets in the system (simulation): {avg_packets_sim} +- {ci_amplitude}')
+
+x = np.linspace(0, simulation_time)
+
+ax[3].plot(queue_occupation['time'], queue_occupation['total_packets'], label='Packets in queue')
+# ax[3].plot(queue_occupation['time'], queue_occupation['total_packets'], label='Total packets')
+ax[3].plot(x, np.ones(len(x))*avg_packets_theory, label='Theoretical average')
+ax[3].plot(x, np.ones(len(x))*avg_packets_sim, label='Simulation average')
+ax[3].set_title("Queue occupation")
+ax[3].legend()
+
 plt.show()

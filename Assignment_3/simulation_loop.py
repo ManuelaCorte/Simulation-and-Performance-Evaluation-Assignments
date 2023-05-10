@@ -169,6 +169,8 @@ def simulation_loop(simulation_time, l, mu, gen):
     # queue_occupation['width'].shift(1)
     queue_occupation['width'].iloc[0] = queue_occupation['time'].iloc[0]
     
+    packets.dropna(inplace=True)
+    queue_occupation.dropna(inplace=True)
     packets.to_csv('packets.csv')
     queue_occupation.to_csv('queue_occupation.csv')
     return packets, queue_occupation
