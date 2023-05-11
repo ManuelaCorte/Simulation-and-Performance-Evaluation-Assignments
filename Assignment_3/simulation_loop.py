@@ -5,6 +5,7 @@ from utils.packet import Packet
 from queue import Queue
 import pandas as pd
 
+
 def simulation_loop(simulation_time, l, mu, gen):
     logging.basicConfig(
         level=logging.INFO,
@@ -13,22 +14,31 @@ def simulation_loop(simulation_time, l, mu, gen):
         format="%(asctime)s %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
-    queue = EventQueue(
-        simulation_time
-    )  # don't fill up the queue, at most a couple of arrivals and a departure
+
+    # We don't want to fill up the queue, but have at most a couple of arrivals and a departure
+    queue = EventQueue(simulation_time)
 
     current_event: Event = queue.queue.get()[1]
     current_time = current_event.time
-    packets_in_queue = 0
     server_busy = False
     server_queue = Queue()
-    packets = pd.DataFrame(columns=["idx", "arrival_time", "service_time", "departure_time", "waiting_time", "response_time"])
-    queue_occupation = pd.DataFrame(columns=['time', 'packets_in_queue', 'total_packets', 'width'])
-    queue_occ = pd.DataFrame(columns=['time', 'packets_in_queue', 'total_packets'])
+    # Dataframe to store time information about packets
+    packets = pd.DataFrame(
+        columns=[
+            "idx",
+            "arrival_time",
+            "service_time",
+            "departure_time",
+            "waiting_time",
+            "total_time",
+        ]
+    )
+    # Dataframe to store the packets in queue and the system at every time jump (and the width of that jump)
+    # The widths of all jumps are computed at the end as the difference between the current time and the previous one
+    queue_occupation = pd.DataFrame(
+        columns=["time", "packets_in_queue", "total_packets", "width"]
+    )
 
-    # queue.queue.put((2.60, Event(EventType.debug, 2.60, None)))
-    # queue.queue.put((2.71, Event(EventType.debug, 2.71, None)))
-    # logging.info(queue)
     while True:
         match current_event.type:
             case EventType.start:
@@ -38,10 +48,11 @@ def simulation_loop(simulation_time, l, mu, gen):
                 arr = gen.exponential(1 / l)
                 queue.queue.put((arr, Event(EventType.arrival, arr, 0)))
                 server_busy = False
-                
-                queue_occupation.loc[arr] = [arr, 0, 1, arr]
+
                 packets.loc[0] = [0, arr, None, None, None, None]
-                # logging.info(f'Scheduling first arrival at time {arr}')
+
+                # First packet: 1 total packet in the system, 0 in the queue
+                queue_occupation.loc[arr] = [arr, 0, 1, arr]
 
             case EventType.stop:
                 logging.info(f"Simulation completed")
@@ -51,11 +62,19 @@ def simulation_loop(simulation_time, l, mu, gen):
                 logging.info(
                     f"Packet {current_event.idx} arrived at time {current_event.time}"
                 )
-                packets.loc[current_event.idx] = [current_event.idx, current_event.time, None, None, None, None]
+                packets.loc[current_event.idx] = [
+                    current_event.idx,
+                    current_event.time,
+                    None,
+                    None,
+                    None,
+                    None,
+                ]
                 if not server_busy:
-                    # Schedule packet departure and seize server
+                    # Seize server to serve packet and schedule its departure based on the exponentail service time
                     server_busy = True
                     service_time = gen.exponential(1 / mu)
+                    # Note that the departure event added has the same idx as the arrival event that generated it
                     queue.queue.put(
                         (
                             current_event.time + service_time,
@@ -66,27 +85,34 @@ def simulation_loop(simulation_time, l, mu, gen):
                             ),
                         )
                     )
-                    # df1.loc[df1['stream'] == 2, 'feat'] = 10
-                    queue_occupation.loc[current_time] = [current_event.time, server_queue.qsize(), server_queue.qsize() +1, None]
-                    # queue_occupation.loc[current_time] = [current_event.time, server_queue.qsize(), server_queue.qsize() +1]
+                    # A packet is being served so there are server_queue_size + 1 packets in the all system
+                    queue_occupation.loc[current_time] = [
+                        current_event.time,
+                        server_queue.qsize(),
+                        server_queue.qsize() + 1,
+                        None,
+                    ]
+
+                    packets.loc[current_event.idx]["service_time"] = current_time
+                    packets.loc[current_event.idx]["departure_time"] = (
+                        current_time + service_time
+                    )
 
                     logging.info(f"Server free, serving packet {current_event.idx}")
-                    packets.loc[current_event.idx]['service_time'] = current_time
-                    packets.loc[current_event.idx]['departure_time'] = current_time + service_time
-                    # packets[current_event.idx].service_time = current_time
-                    # packets[current_event.idx].departure_time = (
-                    #     current_time + service_time
-                    # )
                 else:
-                    # Server busy, add arrived packet to queue
+                    # Server busy, add arrived packet to server queue
                     server_queue.put(current_event)
-                    queue_occupation.loc[current_time] = [current_event.time, server_queue.qsize(), server_queue.qsize() + 1, None]
+                    queue_occupation.loc[current_time] = [
+                        current_event.time,
+                        server_queue.qsize(),
+                        server_queue.qsize() + 1,
+                        None,
+                    ]
                     logging.info(
                         f"Server busy, packet {current_event.idx} added to queue at time {current_event.time}"
                     )
-                # logging.info(current_event)
 
-                # Schedule next arrival so that the queue is never empty
+                # Regardless of whether the server is busy or not schedule next arrival so that the queue is never empty
                 interarrival_time = gen.exponential(1 / l)
                 queue.queue.put(
                     (
@@ -103,21 +129,23 @@ def simulation_loop(simulation_time, l, mu, gen):
                 logging.info(
                     f"Packet {current_event.idx} departed at time {current_event.time}"
                 )
-                packets.loc[current_event.idx]['departure_time'] = current_time
-                
-                # packets[current_event.idx].departure_time = current_event.time
-                if server_queue.empty():
-                    queue_occupation.loc[current_time] = [current_event.time, 0, 0, None]
+                # Update the departure time of the packet
+                packets.loc[current_event.idx]["departure_time"] = current_time
 
+                if server_queue.empty():
                     # No package in the queue, free server
                     server_busy = False
-                    # logging.info('No packages in queue, server free')
+                    queue_occupation.loc[current_time] = [
+                        current_event.time,
+                        0,
+                        0,
+                        None,
+                    ]
+
                 else:
-                    # Serve new packet picking it from the queue
-                    # queue.queue.put((current_event.time + gen.exponential(1/mu), Event(EventType.departure, current_event.time + gen.exponential(1/mu), current_event.idx )))
-                    # logging.info(f'Picking package {current_event.idx} from queue and scheduling its departure')
-                    pending_arrival = server_queue.get()
-                    queue_occupation.loc[current_time] = [current_event.time, server_queue.qsize(), server_queue.qsize() + 1, None]
+                    # Since there was a departure the server is free to serve another packet --> pick one from the server queue
+                    server_busy = True
+                    pending_packet = server_queue.get()
                     service_time = gen.exponential(1 / mu)
                     queue.queue.put(
                         (
@@ -125,52 +153,52 @@ def simulation_loop(simulation_time, l, mu, gen):
                             Event(
                                 EventType.departure,
                                 current_event.time + service_time,
-                                pending_arrival.idx,
+                                pending_packet.idx,
                             ),
                         )
                     )
-                    logging.info(
-                        f"Picking package {pending_arrival.idx} from queue and serving it at time {current_event.time}"
+
+                    queue_occupation.loc[current_time] = [
+                        current_event.time,
+                        server_queue.qsize(),
+                        server_queue.qsize() + 1,
+                        None,
+                    ]
+                    packets.loc[pending_packet.idx]["service_time"] = current_time
+                    packets.loc[pending_packet.idx]["departure_time"] = (
+                        current_time + service_time
                     )
-                    server_busy = True
-                    packets.loc[pending_arrival.idx]['service_time'] = current_time
-                    packets.loc[pending_arrival.idx]['departure_time'] = current_time + service_time
-                    # packets.update(
-                    #     {
-                    #         pending_arrival.idx: Packet(
-                    #             pending_arrival.idx,
-                    #             pending_arrival.time,
-                    #             current_time,
-                    #             current_event.time + service_time,
-                    #         )
-                    #     }
-                    # )
+                    logging.info(
+                        f"Picking package {pending_packet.idx} from queue and serving it at time {current_event.time}"
+                    )
             case EventType.debug:
+                # If we see any weird behaviour at time t we can add two breakpoint events one slightly before and one slightly after t
                 breakpoint()
             case _:
                 logging.info(
                     f"Unknown event type {current_event.type} {current_event.time}"
                 )
+                break
 
         current_event = queue.queue.get()[1]
         current_time = current_event.time
-        packets_in_queue = server_queue.qsize()
-        total_packets = packets_in_queue + 1 if server_busy else packets_in_queue
-        queue_occ.loc[str(current_time)] = [current_time, packets_in_queue, total_packets]
-        # print(current_time)
 
-    packets['waiting_time'] = packets['service_time'] - packets['arrival_time']
-    packets['response_time'] = packets['departure_time'] - packets['arrival_time']
-    # print(packets.head())
-    # print(queue_occupation.head())
+    # Compute waiting and total time for each packet
+    packets["waiting_time"] = packets["service_time"] - packets["arrival_time"]
+    packets["total_time"] = packets["departure_time"] - packets["arrival_time"]
 
     # Compute width of intervals in queue occupation
-    queue_occupation['width'] = queue_occupation['time'] - queue_occupation['time'].shift(1)
-    # queue_occupation['width'].shift(1)
-    queue_occupation['width'].iloc[0] = queue_occupation['time'].iloc[0]
-    
+    # The first interval is the time between the start of the simulation and the first arrival
+    queue_occupation["width"] = queue_occupation["time"] - queue_occupation[
+        "time"
+    ].shift(1)
+    queue_occupation["width"].iloc[0] = queue_occupation["time"].iloc[0]
+
+    # Drop rows with missing values (e.g. packets that entered the system but weren't served) (not sure if statistically correct)
     packets.dropna(inplace=True)
     queue_occupation.dropna(inplace=True)
-    packets.to_csv('packets.csv')
-    queue_occupation.to_csv('queue_occupation.csv')
+
+    # Save dataframes to csv for easier inspection
+    packets.to_csv("packets.csv")
+    queue_occupation.to_csv("queue_occupation.csv")
     return packets, queue_occupation
