@@ -1,7 +1,6 @@
 import logging
 import numpy as np
 from utils.event import Event, EventType, EventQueue
-from utils.packet import Packet
 from queue import Queue
 import pandas as pd
 

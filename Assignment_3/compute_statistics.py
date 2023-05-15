@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas.plotting as pdplt
 import scipy.stats as stats
-from utils.packet import Packet
 from simulation_loop import simulation_loop
 import pandas as pd
 import scipy.signal as signal
