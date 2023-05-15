@@ -51,8 +51,8 @@ def simulation_loop(simulation_time, l, mu, gen):
 
                 packets.loc[0] = [0, arr, None, None, None, None]
 
-                # First packet: 1 total packet in the system, 0 in the queue
-                queue_occupation.loc[arr] = [arr, 0, 1, arr]
+                # Initial condition: system empty until first arrival
+                queue_occupation.loc[0.0] = [0.0, 0, 0, arr]
 
             case EventType.stop:
                 logging.info(f"Simulation completed")
@@ -184,15 +184,13 @@ def simulation_loop(simulation_time, l, mu, gen):
         current_time = current_event.time
 
     # Compute waiting and total time for each packet
+    packets['server_time'] = packets['departure_time'] - packets['service_time']
     packets["waiting_time"] = packets["service_time"] - packets["arrival_time"]
     packets["total_time"] = packets["departure_time"] - packets["arrival_time"]
 
     # Compute width of intervals in queue occupation
-    # The first interval is the time between the start of the simulation and the first arrival
-    queue_occupation["width"] = queue_occupation["time"] - queue_occupation[
-        "time"
-    ].shift(1)
-    queue_occupation["width"].iloc[0] = queue_occupation["time"].iloc[0]
+    queue_occupation["width"] = queue_occupation["time"].shift(-1) - queue_occupation["time"]
+    # print(queue_occupation.head())
 
     # Drop rows with missing values (e.g. packets that entered the system but weren't served) (not sure if statistically correct)
     packets.dropna(inplace=True)
