@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas.plotting as pdplt
 import scipy.stats as stats
 from simulation_loop import simulation_loop
+from utils.plotting import Plotting
 import pandas as pd
 import scipy.signal as signal
 import argparse
@@ -30,46 +31,17 @@ else:
 
 packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen)
 
-f, ax = plt.subplots(4, figsize=(10, 20))
+plot_util = Plotting(l, mu, packets, queue_occupation)
 
-# Check if arrivals are uniformly distributed
-x = np.linspace(0, simulation_time)
-ax[0].hist(packets["arrival_time"], bins="auto", density=True, label="Arrival times")
-ax[0].plot(x, stats.uniform.pdf(x, 0, simulation_time), label="Uniform distribution")
-ax[0].set_title("Arrival distribution")
-ax[0].legend()
+plot_util.plot_preliminary_functions()
 
-# Check if service times are exponentially distributed both through a histogram and a Kolmogorov-Smirnoff test
-x = np.linspace(0, 3)
-exp = stats.expon(scale=1 / mu)
-ax[1].hist(packets['server_time'], bins="auto", density=True, label="Service times")
-ax[1].plot(x, exp.pdf(x), label="Exponential distribution")
-ax[1].set_title("Service distribution")
-ax[1].legend()
-test_exp = stats.kstest(
-    packets['server_time'],
-    stats.expon.cdf,
-    args=(np.mean(packets['server_time']), 1 / mu),
-)
-print(test_exp)
+plot_util.plot_waiting_times_distribution()
 
-# Plot the waiting times (should change based on rho)
-ax[2].hist(packets["waiting_time"], bins="auto", density=True, label="Waiting times")
-ax[2].set_title("Waiting time distribution")
-ax[2].legend()
+plot_util.plot_queue_occupation()
 
-x = np.linspace(0, simulation_time)
-ax[3].plot(
-    queue_occupation["time"],
-    queue_occupation["total_packets"],
-    label="Packets in queue",
-)
-ax[3].set_title("Queue occupation")
-ax[3].legend()
+plot_util.plot_auto_correlation()
 
-f, ax = plt.subplots(1)
-pdplt.autocorrelation_plot(packets["waiting_time"], ax=ax)
-
+plt.show()
 
 
 # Compute "fixed" statistics
