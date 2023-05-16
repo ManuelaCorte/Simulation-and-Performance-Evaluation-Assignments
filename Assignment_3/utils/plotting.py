@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from utils.stats import Statistics
 
+
 # Plots the distribution of the arrival times and compares it to a uniform distribution
 # Plots the distribution of the service times and compares it to an exponential distribution
 class Plotting:
@@ -90,13 +91,21 @@ class Plotting:
         ax.set_title("Utilization")
         ax.legend()
 
-    def plot_auto_correlation(self):
+    def plot_auto_correlation(self, type):
         f, ax = plt.subplots(1, figsize=(10, 20))
-        pdplt.autocorrelation_plot(self.packets["waiting_time"])
-        ax.set_title("Autocorrelation of waiting times")
+        match type:
+            case Statistics.RESPONSE_TIME:
+                pdplt.autocorrelation_plot(self.packets["total_time"])
+                ax.set_title("Autocorrelation of response times")
+            case Statistics.WAITING_TIME:
+                pdplt.autocorrelation_plot(self.packets["waiting_time"])
+                ax.set_title("Autocorrelation of waiting times")
+            case _:
+                raise ValueError("Invalid type")
 
-
-    def plot_confidence_interval(self, x, mean, ci, color='#2187bb', horizontal_line_width=0.25):
+    def plot_confidence_interval(
+        self, x, mean, ci, color="#2187bb", horizontal_line_width=0.25
+    ):
         left = x - horizontal_line_width / 2
         top = mean - ci
         right = x + horizontal_line_width / 2
@@ -104,15 +113,17 @@ class Plotting:
         plt.plot([x, x], [top, bottom], color=color)
         plt.plot([left, right], [top, top], color=color)
         plt.plot([left, right], [bottom, bottom], color=color)
-        plt.plot(x, mean, 'o', color='#f44336')
+        plt.plot(x, mean, "o", color="#f44336")
 
     def plot_batch_means(self, batch_means, intervals, type):
         f, ax = plt.subplots(1, figsize=(10, 20))
         for i in range(len(batch_means)):
-            self.plot_confidence_interval(i+1, batch_means[i], intervals[i])
+            self.plot_confidence_interval(i + 1, batch_means[i], intervals[i])
         match type:
             case Statistics.WAITING_TIME:
-                ax.axhline(self.rho / (self.mu - self.l), color="r", label="Theoretical mean")
+                ax.axhline(
+                    self.rho / (self.mu - self.l), color="r", label="Theoretical mean"
+                )
                 ax.set_title("Batch means of waiting times")
             case Statistics.RESPONSE_TIME:
                 ax.axhline(1 / (self.mu - self.l), color="r", label="Theoretical mean")

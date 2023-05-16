@@ -20,7 +20,7 @@ parser.add_argument(
 # setting simulation parameters
 l = 1.5
 mu = 2.5
-simulation_time = 4000
+simulation_time = 5000
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
@@ -43,7 +43,8 @@ plot_util.plot_waiting_times_distribution()
 
 
 # Plot autocorrelation to decide batch size for batch means
-# plot_util.plot_auto_correlation()
+plot_util.plot_auto_correlation(Statistics.WAITING_TIME)
+plot_util.plot_auto_correlation(Statistics.RESPONSE_TIME)
 
 
 # Compute theory statistics
@@ -64,11 +65,21 @@ utilization = (
     / total_width
 )
 
-grand_mean_waiting_time, ci_amplitude_waiting_time, batch_means_waiting_time, intervals_waiting_time = compute_batch_means_statistics(Statistics.WAITING_TIME, packets, 4000, 10000, 0.95)
+(
+    grand_mean_waiting_time,
+    ci_amplitude_waiting_time,
+    batch_means_waiting_time,
+    intervals_waiting_time,
+) = compute_batch_means_statistics(Statistics.WAITING_TIME, packets, 4000, 10000, 0.95)
 
 # Techinically we should check that the batch size and the initialization bias is the same observed for the waiting times
 # but the MM1 queue is simple enough that we assume it is the same
-grand_mean_response_time, ci_amplitude_response_time, batch_means_response_time, intervals_response_time = compute_batch_means_statistics(Statistics.RESPONSE_TIME, packets, 4000, 10000, 0.95)
+(
+    grand_mean_response_time,
+    ci_amplitude_response_time,
+    batch_means_response_time,
+    intervals_response_time,
+) = compute_batch_means_statistics(Statistics.RESPONSE_TIME, packets, 4000, 10000, 0.95)
 
 
 # Check if the time the system is used is equal to the theoretical value rho
@@ -94,7 +105,11 @@ plot_util.plot_queue_occupation(avg_packets_in_system_sim)
 
 plot_util.plot_utilization()
 
-plot_util.plot_batch_means(batch_means_waiting_time, intervals_waiting_time, Statistics.WAITING_TIME)
+plot_util.plot_batch_means(
+    batch_means_waiting_time, intervals_waiting_time, Statistics.WAITING_TIME
+)
 
-plot_util.plot_batch_means(batch_means_response_time, intervals_response_time, Statistics.RESPONSE_TIME)
+plot_util.plot_batch_means(
+    batch_means_response_time, intervals_response_time, Statistics.RESPONSE_TIME
+)
 plt.show()
