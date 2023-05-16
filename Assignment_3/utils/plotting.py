@@ -94,3 +94,22 @@ class Plotting:
         f, ax = plt.subplots(1, figsize=(10, 20))
         pdplt.autocorrelation_plot(self.packets["waiting_time"])
         ax.set_title("Autocorrelation of waiting times")
+
+
+    def plot_confidence_interval(self, x, mean, ci, color='#2187bb', horizontal_line_width=0.25):
+        left = x - horizontal_line_width / 2
+        top = mean - ci
+        right = x + horizontal_line_width / 2
+        bottom = mean + ci
+        plt.plot([x, x], [top, bottom], color=color)
+        plt.plot([left, right], [top, top], color=color)
+        plt.plot([left, right], [bottom, bottom], color=color)
+        plt.plot(x, mean, 'o', color='#f44336')
+
+    def plot_batch_means(self, batch_means, intervals):
+        f, ax = plt.subplots(1, figsize=(10, 20))
+        for i in range(len(batch_means)):
+            self.plot_confidence_interval(i+1, batch_means[i], intervals[i])
+        ax.axhline(self.rho / (self.mu - self.l), color="r", label="Theoretical mean")
+        ax.set_title("Batch means")
+        ax.legend()

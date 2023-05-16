@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from simulation_loop import simulation_loop
 from utils.plotting import Plotting
+from batch_means import compute_batch_means_statistics
 import pandas as pd
 import argparse
 from pprint import pprint
@@ -18,7 +19,7 @@ parser.add_argument(
 # setting simulation parameters
 l = 1.5
 mu = 2.5
-simulation_time = 100000
+simulation_time = 2000
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
@@ -56,8 +57,7 @@ avg_queue_length_th = 1 / (1 - rho)
 avg_response_time_sim = np.sum(packets["total_time"]) / number_of_packets
 ci_response_time = 1.96 * np.std(packets["total_time"]) / np.sqrt(number_of_packets)
 
-avg_waiting_time_sim = np.sum(packets["waiting_time"]) / number_of_packets
-ci_waiting_time = 1.96 * np.std(packets["waiting_time"]) / np.sqrt(number_of_packets)
+grand_mean, ci_amplitude, batch_means, intervals = compute_batch_means_statistics(packets, queue_occupation, 3000, 10000)
 
 avg_packets_in_system_sim = (
     np.sum(queue_occupation["total_packets"] * queue_occupation["width"]) / total_width
@@ -85,7 +85,7 @@ print(
 # Check if average time waiting is equal to the theoretical value
 print(
     f"""Average waiting time (theory): {avg_waiting_time_th} \t
-        Average waiting time (simulation): {avg_waiting_time_sim} +- {ci_waiting_time}"""
+        Average waiting time (simulation): {grand_mean} +- {ci_amplitude}"""
 )
 
 print(
@@ -96,4 +96,6 @@ print(
 plot_util.plot_queue_occupation(avg_packets_in_system_sim)
 
 plot_util.plot_utilization()
+
+plot_util.plot_batch_means(batch_means, intervals)
 plt.show()
