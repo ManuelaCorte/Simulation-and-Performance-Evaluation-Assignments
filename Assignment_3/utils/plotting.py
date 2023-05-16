@@ -3,7 +3,7 @@ import pandas.plotting as pdplt
 import scipy.stats as stats
 import numpy as np
 import pandas as pd
-
+from utils.stats import Statistics
 
 # Plots the distribution of the arrival times and compares it to a uniform distribution
 # Plots the distribution of the service times and compares it to an exponential distribution
@@ -106,10 +106,15 @@ class Plotting:
         plt.plot([left, right], [bottom, bottom], color=color)
         plt.plot(x, mean, 'o', color='#f44336')
 
-    def plot_batch_means(self, batch_means, intervals):
+    def plot_batch_means(self, batch_means, intervals, type):
         f, ax = plt.subplots(1, figsize=(10, 20))
         for i in range(len(batch_means)):
             self.plot_confidence_interval(i+1, batch_means[i], intervals[i])
-        ax.axhline(self.rho / (self.mu - self.l), color="r", label="Theoretical mean")
-        ax.set_title("Batch means")
+        match type:
+            case Statistics.WAITING_TIME:
+                ax.axhline(self.rho / (self.mu - self.l), color="r", label="Theoretical mean")
+                ax.set_title("Batch means of waiting times")
+            case Statistics.RESPONSE_TIME:
+                ax.axhline(1 / (self.mu - self.l), color="r", label="Theoretical mean")
+                ax.set_title("Batch means of response times")
         ax.legend()
