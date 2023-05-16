@@ -1,78 +1,99 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas.plotting as pdplt
-import scipy.stats as stats
 from simulation_loop import simulation_loop
 from utils.plotting import Plotting
 import pandas as pd
-import scipy.signal as signal
 import argparse
+from pprint import pprint
 
-# Set simulation parameters and run simulation
+
+# To speed up development we load the data from csv files instead of running the simulation
 parser = argparse.ArgumentParser()
-parser.add_argument('--csv', action='store_true', help='Instead of running the simulation, load the data from a csv file')
+parser.add_argument(
+    "--csv",
+    action="store_true",
+    help="Instead of running the simulation, load the data from a csv file",
+)
 
-
+# setting simulation parameters
 l = 1.5
 mu = 2.5
-rho = l / mu
-simulation_time = 5000
-number_of_runs = 1
+simulation_time = 100000
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
 if args.csv:
     print("Loading data from csv files")
-    packets = pd.read_csv('packets.csv')
-    queue_occupation = pd.read_csv('queue_occupation.csv')
+    packets = pd.read_csv("packets_avg.csv")
+    queue_occupation = pd.read_csv("queue_occupation_avg.csv")
 else:
     print("Running simulation")
     packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen)
 
-packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen)
 
-plot_util = Plotting(l, mu, packets, queue_occupation)
+plot_util = Plotting(l, mu, simulation_time, packets, queue_occupation)
 
+# Plot distribution of arrival times and service times just to check they follow theoretical distributions
 plot_util.plot_preliminary_functions()
 
+# Peak of waiting times should move to the right the closer rho is to 1
 plot_util.plot_waiting_times_distribution()
 
-plot_util.plot_queue_occupation()
 
+# Plot autocorrelation to decide batch size for batch means
 plot_util.plot_auto_correlation()
 
-plt.show()
 
-
-# Compute "fixed" statistics
-avg_packets_theory = rho / (1 - rho)
+# Compute theory statistics
 total_width = np.sum(queue_occupation["width"])
-avg_time_in_system_sim = np.sum(packets["total_time"]) / len(packets)
-avg_time_in_system_theory = 1 / (mu - l)
-avg_time_waiting_sim = np.sum(packets["waiting_time"]) / len(packets)
-avg_time_waiting_theory = rho / (mu - l)
+number_of_packets = len(packets)
+rho = l / mu
+avg_packets_in_system_th = rho / (1 - rho)
+avg_response_time_th = 1 / (mu - l)  # Little's law
+avg_waiting_time_th = rho / (mu - l)
+avg_queue_length_th = 1 / (1 - rho)
+
+avg_response_time_sim = np.sum(packets["total_time"]) / number_of_packets
+ci_response_time = 1.96 * np.std(packets["total_time"]) / np.sqrt(number_of_packets)
+
+avg_waiting_time_sim = np.sum(packets["waiting_time"]) / number_of_packets
+ci_waiting_time = 1.96 * np.std(packets["waiting_time"]) / np.sqrt(number_of_packets)
+
+avg_packets_in_system_sim = (
+    np.sum(queue_occupation["total_packets"] * queue_occupation["width"]) / total_width
+)
+ci_packets_in_system = (
+    1.96
+    * np.std(queue_occupation["total_packets"] * queue_occupation["width"])
+    / np.sqrt(total_width)
+)
 utilization = (
-    queue_occupation.loc[queue_occupation["packets_in_queue"] != 0]["width"].sum()
+    queue_occupation.loc[queue_occupation["total_packets"] != 0]["width"].sum()
     / total_width
 )
 
 
-# Check if the time the system id empty is equal to the theoretical value rho
+# Check if the time the system is used is equal to the theoretical value rho
 print(f"Occupation: {utilization}, theoretical: {rho}")
 
 # Check if average time in the system is equal to the theoretical value
-print(f"Average time in the system (theory): {avg_time_in_system_theory}")
-print(f"Average time in the system (simulation): {avg_time_in_system_sim}")
-
-# Check if average time waiting is equal to the theoretical value
-print(f"Average time waiting (theory): {avg_time_waiting_theory}")
-print(f"Average time waiting (simulation): {avg_time_waiting_sim}")
-
-avg_packets_sim = np.sum(packets['waiting_time']) / len(packets)
-avg_packets_theory = rho / (1 - rho)
-print(f"Average number of packets in the system (theory): {avg_packets_theory}")
 print(
-    f"Average number of packets in the system (simulation): {avg_packets_sim}"
+    f"""Average response time (theory): {avg_response_time_th} \t
+      Average response time (simulation): {avg_response_time_sim} +- {ci_response_time}"""
 )
 
+# Check if average time waiting is equal to the theoretical value
+print(
+    f"""Average waiting time (theory): {avg_waiting_time_th} \t
+        Average waiting time (simulation): {avg_waiting_time_sim} +- {ci_waiting_time}"""
+)
+
+print(
+    f"""Average number of packets in the system (theory): {avg_packets_in_system_th} \t
+        Average number of packets in the system (simulation): {avg_packets_in_system_sim} +- {ci_packets_in_system}"""
+)
+
+plot_util.plot_queue_occupation(avg_packets_in_system_sim)
+
+plot_util.plot_utilization()
 plt.show()
