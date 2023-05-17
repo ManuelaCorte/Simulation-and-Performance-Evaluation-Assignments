@@ -78,7 +78,7 @@ class Plotting:
         ax.set_title("Queue occupation")
         ax.legend()
 
-    def plot_utilization(self):
+    def plot_utilization(self, n_servers):
         f, ax = plt.subplots(1, figsize=(10, 20))
         avg = (
             self.queue_occupation[self.queue_occupation["total_packets"] != 0][
@@ -87,7 +87,7 @@ class Plotting:
             / self.queue_occupation["width"].cumsum()
         )
         ax.plot(avg, label="Utilization", color="b")
-        ax.axhline(self.rho, label="Theoretical value", color="r")
+        ax.axhline(self.rho / n_servers, label="Theoretical value", color="r")
         ax.set_title("Utilization")
         ax.legend()
 
