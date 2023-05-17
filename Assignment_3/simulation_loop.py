@@ -9,7 +9,7 @@ def simulation_loop(
         simulation_time, 
         l, 
         mu, 
-        gen: np.Generator, 
+        gen, 
         n_servers = 1, 
         max_queue_elements = np.inf, 
         scheduling_function = SchedulingFunction.LeastFull
@@ -128,7 +128,7 @@ def simulation_loop(
                         case SchedulingFunction.RoundRobin:
                             server_choosen = RoundRobin(n_servers, servers_queue, max_queue_elements)
                         case SchedulingFunction.Random:
-                            server_choosen = Random(n_servers, servers_queue, max_queue_elements, gen)
+                            server_choosen = Random(n_servers, servers_queue, max_queue_elements)
                         case _:
                             server_choosen = 0
                         
