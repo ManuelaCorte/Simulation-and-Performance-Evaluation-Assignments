@@ -239,7 +239,7 @@ def simulation_loop(
                 break 
   
         if i % 1000 == 0 and i != 0:
-            print(f'time: {current_time}')
+            # print(f'time: {current_time}')
             least_recent_packet = [server.queue[-1].idx if server.qsize() != 0 else np.inf for server in servers_queue]
             least_recent_packet = min(least_recent_packet)
             split_id = min(least_recent_packet, current_event.idx) - 50

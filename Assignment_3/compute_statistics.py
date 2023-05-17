@@ -8,7 +8,7 @@ from utils.SchedulingFunction import SchedulingFunction
 import pandas as pd
 import argparse
 from pprint import pprint
-from utils.compute_theoretical_statistics import compute_theoretical_statistics
+from utils.compute_theoretical_statistics_2 import compute_theoretical_statistics
 
 # To speed up development we load the data from csv files instead of running the simulation
 parser = argparse.ArgumentParser()
@@ -22,8 +22,8 @@ parser.add_argument(
 l = 1.5
 mu = 2.5
 n_servers = 2
-simulation_time = 15000
-max_queue_elements = 1000 # > 999 is considered infinite
+simulation_time = 30000
+max_queue_elements = float('inf') # > 999 is considered infinite
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
@@ -42,20 +42,6 @@ if args.csv:
 else:
     print("Running simulation")
     packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen, n_servers, max_queue_elements, SchedulingFunction.LeastFull)
-
-
-plot_util = Plotting(l, mu, simulation_time, packets, queue_occupation)
-
-# Plot distribution of arrival times and service times just to check they follow theoretical distributions
-plot_util.plot_preliminary_functions()
-
-# Peak of waiting times should move to the right the closer rho is to 1
-plot_util.plot_waiting_times_distribution()
-
-
-# Plot autocorrelation to decide batch size for batch means
-plot_util.plot_auto_correlation(Statistics.WAITING_TIME)
-plot_util.plot_auto_correlation(Statistics.RESPONSE_TIME)
 
 total_width = np.sum(queue_occupation["width"])
 number_of_packets = len(packets)
@@ -87,7 +73,7 @@ utilization = (
 
 
 # Check if the time the system is used is equal to the theoretical value rho
-print(f"Occupation: {utilization}, theoretical: {rho / n_servers}")
+print(f"Occupation: {utilization}, theoretical: {rho}")
 print(
     f"""Average number of packets in the system (theory): {avg_packets_in_system_th} \t
         Average number of packets in the system (simulation): {avg_packets_in_system_sim}"""
@@ -104,6 +90,19 @@ print(
     f"""Average waiting time (theory): {avg_waiting_time_th} \t
         Average waiting time (simulation): {grand_mean_waiting_time} +- {ci_amplitude_waiting_time}"""
 )
+
+plot_util = Plotting(l, mu, n_servers, simulation_time, packets, queue_occupation)
+
+# Plot distribution of arrival times and service times just to check they follow theoretical distributions
+plot_util.plot_preliminary_functions()
+
+# Peak of waiting times should move to the right the closer rho is to 1
+plot_util.plot_waiting_times_distribution()
+
+
+# Plot autocorrelation to decide batch size for batch means
+plot_util.plot_auto_correlation(Statistics.WAITING_TIME)
+plot_util.plot_auto_correlation(Statistics.RESPONSE_TIME)
 
 plot_util.plot_queue_occupation(avg_packets_in_system_sim)
 

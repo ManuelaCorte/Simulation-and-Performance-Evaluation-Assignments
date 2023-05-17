@@ -9,13 +9,13 @@ from utils.stats import Statistics
 # Plots the distribution of the arrival times and compares it to a uniform distribution
 # Plots the distribution of the service times and compares it to an exponential distribution
 class Plotting:
-    def __init__(self, l, mu, simulation_time, packets, queue_occupation):
+    def __init__(self, l, mu, n_servers, simulation_time, packets, queue_occupation):
         self.l = l
         self.mu = mu
         self.simulation_time = simulation_time
         self.packets = packets
         self.queue_occupation = queue_occupation
-        self.rho = l / mu
+        self.rho = l / (mu * n_servers)
 
     def plot_preliminary_functions(self):
         f, ax = plt.subplots(2, figsize=(10, 20))
