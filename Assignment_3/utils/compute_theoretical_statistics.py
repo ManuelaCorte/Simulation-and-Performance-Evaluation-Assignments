@@ -22,7 +22,7 @@ def compute_pi_k(rho, c, k, pi_zero):
 
 # Compute theory statistics
 def compute_theoretical_statistics(l, mu, n_servers = 2, max_queue_elements = 1000):
-    rho = l / mu
+    rho = l / (n_servers * mu)
     c = n_servers
     k = max_queue_elements
     if rho / c >= 1:

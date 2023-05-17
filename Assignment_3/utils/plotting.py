@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from utils.stats import Statistics
 from utils.SchedulingFunction import SchedulingFunction
-
+from utils.compute_theoretical_statistics import compute_theoretical_statistics
 
 # Plots the distribution of the arrival times and compares it to a uniform distribution
 # Plots the distribution of the service times and compares it to an exponential distribution
@@ -18,7 +18,7 @@ class Plotting:
         self.simulation_time = simulation_time
         self.packets = packets
         self.queue_occupation = queue_occupation
-        self.rho = l / mu
+        self.rho, self.avg_packets_in_system_th, self.avg_waiting_time_th, self.avg_response_time_th, self.avg_queue_length_th= compute_theoretical_statistics(l, mu, number_servers, length_queue)
 
     def plot_preliminary_functions(self):
         f, ax = plt.subplots(2, figsize=(10, 20))
@@ -75,7 +75,7 @@ class Plotting:
             self.queue_occupation["total_packets"],
             label="Packets in queue",
         )
-        ax.axhline(self.rho / (1 - self.rho), label="Theoretical mean", color="b")
+        ax.axhline(self.avg_queue_length_th, label="Theoretical mean", color="b")
         ax.axhline(sim_mean, label="Simulation mean", color="r")
 
         ax.set_title("Queue occupation")
@@ -90,7 +90,7 @@ class Plotting:
             / self.queue_occupation["width"].cumsum()
         )
         ax.plot(avg, label="Utilization", color="b")
-        ax.axhline(self.rho / n_servers, label="Theoretical value", color="r")
+        ax.axhline(self.rho, label="Theoretical value", color="r")
         ax.set_title("Utilization")
         ax.legend()
 
@@ -125,11 +125,11 @@ class Plotting:
         match type:
             case Statistics.WAITING_TIME:
                 ax.axhline(
-                    self.rho / (self.mu - self.l), color="r", label="Theoretical mean"
+                    self.avg_waiting_time_th, color="r", label="Theoretical mean"
                 )
                 ax.set_title("Batch means of waiting times")
             case Statistics.RESPONSE_TIME:
-                ax.axhline(1 / (self.mu - self.l), color="r", label="Theoretical mean")
+                ax.axhline(self.avg_response_time_th, color="r", label="Theoretical mean")
                 ax.set_title("Batch means of response times")
         ax.legend()
 
@@ -143,11 +143,33 @@ class Plotting:
             ax.legend()
         else:
             for i in range(self.number_servers):
-                df = self.packets[self.packets["server_idx"] == float(i)]['waiting_time']  
+                df = self.packets[self.packets["server_idx"] == i]['waiting_time']  
                 ax[i].hist(df, bins="auto", density=True, label="Waiting times")
                 ax[i].set_title(f"Waiting times of server {i}")
                 ax[i].legend()
-
         f.suptitle(f"Waiting times of servers with {policy} policy")
+
+        
+        f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
+        if self.number_servers == 1:
+            values = self.queue_occupation[self.queue_occupation['server_idx'] == 0]
+            ax.step(
+                values["width"].cumsum(),
+                values["total_packets"],
+                label="Queue occupation for server 1 ",
+            )
+            ax.set_title(f"Queue occupation for policy 1 ")
+            ax.legend()
+        else:
+            for i in range(self.number_servers):
+                values = self.queue_occupation[self.queue_occupation['server_idx'] == i]
+                ax[i].step(
+                    values["width"].cumsum(),
+                    values["total_packets"],
+                    label="Queue occupation for server 1 ",
+                )
+                ax[i].set_title(f"Queue occupation for server {i}")
+                ax[i].legend()
+        f.suptitle(f"Queue occupation for {policy} policy")
 
         

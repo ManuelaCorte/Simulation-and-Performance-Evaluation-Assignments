@@ -27,7 +27,7 @@ def simulation_loop(
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
     # If not needed, logging turned off to speed up simulation
-    logging.disable(logging.INFO)
+    # logging.disable(logging.INFO)
 
     # We don't want to fill up the queue, but have at most a couple of arrivals and a departure
     queue = EventQueue(simulation_time)
@@ -234,8 +234,10 @@ def simulation_loop(
     discarded_packets_save.dropna(inplace=True)
     print("--- %s seconds ---" % (time.time() - start_time))
 
+    queue_occupation_save['server_idx'] = queue_occupation_save['server_idx'].astype(int)
+    
     # Save dataframes to csv for easier inspection
-    packets_save.to_csv("packets.csv")
-    queue_occupation_save.to_csv("queue_occupation.csv")
-    discarded_packets_save.to_csv("discarded_packets.csv")
+    packets_save.to_csv("packets.csv", index=False)
+    queue_occupation_save.to_csv("queue_occupation.csv", index=False)
+    discarded_packets_save.to_csv("discarded_packets.csv", index=False)
     return packets_save, queue_occupation_save, discarded_packets_save

@@ -20,12 +20,13 @@ parser.add_argument(
 
 # setting simulation parameters
 l = 1.5
-mu = 2.5
-n_servers = 1
-simulation_time = 1000
+mu = 2
+n_servers = 2
+simulation_time = 100
 # > 999 is considered infinite
-max_queue_elements = 100
+max_queue_elements = 1000
 gen = np.random.default_rng(seed=41)
+scheduling = SchedulingFunction.LeastFull
 args = parser.parse_args()
 
 (
@@ -43,7 +44,7 @@ if args.csv:
     discarded_packets = pd.read_csv("discarded_packets_avg.csv")
 else:
     print("Running simulation")
-    packets, queue_occupation, discarded_packets = simulation_loop(simulation_time, l, mu, gen, n_servers, max_queue_elements, SchedulingFunction.LeastFull)
+    packets, queue_occupation, discarded_packets = simulation_loop(simulation_time, l, mu, gen, n_servers, max_queue_elements, scheduling)
 
 
 plot_util = Plotting(l, mu, n_servers, max_queue_elements , simulation_time, packets, queue_occupation)
@@ -118,7 +119,7 @@ plot_util.plot_batch_means(
     batch_means_response_time, intervals_response_time, Statistics.RESPONSE_TIME
 )
 
-# plot_util.plot_servers_per_policy(SchedulingFunction.LeastFull)
+plot_util.plot_servers_per_policy(scheduling)
 
 
 plt.show()
