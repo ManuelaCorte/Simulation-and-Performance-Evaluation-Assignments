@@ -12,22 +12,20 @@ def LeastFull(n_servers, servers_queue: list[Queue]):
             server_choosen = i
     return server_choosen
 
-round_robin_index = 0
-def RoundRobin(n_servers, servers_queue: list[Queue], max_queue_elements):
+def RoundRobin(n_servers, servers_queue: list[Queue], max_queue_elements, round_robin_index):
     server_choosen = round_robin_index
 
-    for i in range(n_servers):
+    while True:
         if servers_queue[server_choosen].qsize() < max_queue_elements: break
         # server_choosen is full, try the next one
-        server_choosen = server_choosen + 1
+        server_choosen = (server_choosen + 1) % n_servers
         # we looped back to the first server: all of them are full, so just return the first. the packet will be discarded later
         if server_choosen == round_robin_index: break
 
-    global round_robin_index 
-    round_robin_index = (round_robin_index + 1) % n_servers
-    return server_choosen
+    round_robin_index = (server_choosen + 1) % n_servers
+    return server_choosen, round_robin_index
 
-def Random(n_servers, servers_queue: list[Queue], max_queue_elements, gen: np.Generator):
+def Random(n_servers, servers_queue: list[Queue], max_queue_elements):
     servers_not_full = []
     for i in range(n_servers):
         if servers_queue[i].qsize() < max_queue_elements:

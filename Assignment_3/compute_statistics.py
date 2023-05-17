@@ -4,6 +4,7 @@ from simulation_loop import simulation_loop
 from utils.plotting import Plotting
 from utils.stats import Statistics
 from batch_means import compute_batch_means_statistics
+from utils.SchedulingFunction import SchedulingFunction
 import pandas as pd
 import argparse
 from pprint import pprint
@@ -18,7 +19,7 @@ parser.add_argument(
 )
 
 # setting simulation parameters
-l = 1.5
+l = 5
 mu = 2.5
 simulation_time = 5000
 gen = np.random.default_rng(seed=41)
@@ -30,7 +31,7 @@ if args.csv:
     queue_occupation = pd.read_csv("queue_occupation_avg.csv")
 else:
     print("Running simulation")
-    packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen)
+    packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen, 2, 10, SchedulingFunction.LeastFull)
 
 
 plot_util = Plotting(l, mu, simulation_time, packets, queue_occupation)

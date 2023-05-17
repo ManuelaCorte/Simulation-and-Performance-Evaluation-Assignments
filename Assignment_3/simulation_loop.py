@@ -4,6 +4,7 @@ from utils.event import Event, EventType, EventQueue
 from queue import Queue
 from utils.SchedulingFunction import SchedulingFunction, RoundRobin, LeastFull, Random
 import pandas as pd
+import time
 
 def simulation_loop(
         simulation_time, 
@@ -15,8 +16,9 @@ def simulation_loop(
         scheduling_function = SchedulingFunction.LeastFull
     ):
 
-    global round_robin_index
-    round_robin_index = 0
+    start_time = time.time()
+    if scheduling_function == SchedulingFunction.RoundRobin:
+        round_robin_index = 0
     logging.basicConfig(
         level=logging.INFO,
         filename="simulation.log",
@@ -126,7 +128,7 @@ def simulation_loop(
                         case SchedulingFunction.LeastFull:
                             server_choosen = LeastFull(n_servers, servers_queue)
                         case SchedulingFunction.RoundRobin:
-                            server_choosen = RoundRobin(n_servers, servers_queue, max_queue_elements)
+                            server_choosen, round_robin_index = RoundRobin(n_servers, servers_queue, max_queue_elements, round_robin_index)
                         case SchedulingFunction.Random:
                             server_choosen = Random(n_servers, servers_queue, max_queue_elements)
                         case _:
@@ -242,6 +244,7 @@ def simulation_loop(
     # Drop rows with missing values (e.g. packets that entered the system but weren't served) (not sure if statistically correct)
     packets.dropna(inplace=True)
     queue_occupation.dropna(inplace=True)
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     # Save dataframes to csv for easier inspection
     packets.to_csv("packets.csv")
