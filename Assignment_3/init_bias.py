@@ -7,8 +7,8 @@ import argparse
 l = 1.5
 mu = 2.5
 rho = l / mu
-simulation_time = 10000
-number_of_runs = 5
+simulation_time = 30000
+number_of_runs = 10
 gen = np.random.default_rng(seed=41)
 
 parser = argparse.ArgumentParser()
@@ -43,7 +43,7 @@ for i in range(number_of_runs):
     # avg = vars[i].cumsum() / (np.arange(len(vars[i])) + 1)
     ax.plot(vars[i].expanding().mean(), label=f"Waiting time run {i}")
 ax.plot(
-    df.expanding().mean() / number_of_runs, label="Average waiting time across runs"
+    df.expanding().mean() / number_of_runs, label="Average waiting time across runs", linewidth=3
 )
 if args.wt:
     ax.axhline(rho / (mu - l), label="Theoretical value")
