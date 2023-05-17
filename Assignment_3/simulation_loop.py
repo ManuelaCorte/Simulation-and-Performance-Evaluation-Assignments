@@ -2,11 +2,21 @@ import logging
 import numpy as np
 from utils.event import Event, EventType, EventQueue
 from queue import Queue
+from utils.SchedulingFunction import SchedulingFunction, RoundRobin, LeastFull, Random
 import pandas as pd
 
+def simulation_loop(
+        simulation_time, 
+        l, 
+        mu, 
+        gen: np.Generator, 
+        n_servers = 1, 
+        max_queue_elements = np.inf, 
+        scheduling_function = SchedulingFunction.LeastFull
+    ):
 
-def simulation_loop(simulation_time, l, mu, gen, n_servers = 1):
-    print('new function')
+    global round_robin_index
+    round_robin_index = 0
     logging.basicConfig(
         level=logging.INFO,
         filename="simulation.log",
@@ -110,24 +120,38 @@ def simulation_loop(simulation_time, l, mu, gen, n_servers = 1):
 
                 
                 if not found_free_server:
-                    # All server busy, add arrived packet to server queue which has the least number of packets in queue
-                    server_choosen = 0
-                    for i in range(n_servers):
-                        # TODO multiple methods of choosing best server queue
-                        if servers_queue[i].qsize() < servers_queue[server_choosen].qsize():
-                            server_choosen = i
-                            
-                    # TODO ADD THE CHECK IF THE SERVER HAS REACHED THE MAXIMUM AMOUNT OF ELEMENTS IN ITS QUEUE
-                    servers_queue[server_choosen].put(current_event)
-                    queue_occupation.loc[current_time] = [
-                        current_event.time,
-                        servers_queue[server_choosen].qsize(),
-                        servers_queue[server_choosen].qsize() + 1,
-                        None,
-                    ]
-                    logging.info(
-                        f"All servers busy, packet {current_event.idx} added to queue {server_choosen} at time {current_event.time}"
-                    )
+                    match scheduling_function:
+                        case SchedulingFunction.LeastFull:
+                            server_choosen = LeastFull(n_servers, servers_queue)
+                        case SchedulingFunction.RoundRobin:
+                            server_choosen = RoundRobin(n_servers, servers_queue, max_queue_elements)
+                        case SchedulingFunction.Random:
+                            server_choosen = Random(n_servers, servers_queue, max_queue_elements, gen)
+                        case _:
+                            server_choosen = 0
+                        
+                    if servers_queue[server_choosen].qsize() <= max_queue_elements:
+                        servers_queue[server_choosen].put(current_event)
+                        queue_occupation.loc[current_time] = [
+                            current_event.time,
+                            servers_queue[server_choosen].qsize(),
+                            servers_queue[server_choosen].qsize() + 1,
+                            None,
+                        ]
+                        logging.info(
+                            f"All servers busy, packet {current_event.idx} added to queue {server_choosen} at time {current_event.time}"
+                        )
+                    else:
+                        # TODO ADD LOGGING FOR DISCARDED PACKETS
+                        queue_occupation.loc[current_time] = [
+                            current_event.time,
+                            servers_queue[server_choosen].qsize(),
+                            servers_queue[server_choosen].qsize(),
+                            None,
+                        ]
+                        logging.info(
+                            f"Queue {server_choosen} full, packet {current_event.idx} discarded at time {current_event.time}"
+                        )
 
                 # Regardless of whether the server is busy or not schedule next arrival so that the queue is never empty
                 interarrival_time = gen.exponential(1 / l)
