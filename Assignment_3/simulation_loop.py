@@ -237,10 +237,12 @@ def simulation_loop(
                     f"Unknown event type {current_event.type} {current_event.time}"
                 )
                 break 
-        
-        if i % 10000 == 0 and i != 0:
+  
+        if i % 1000 == 0 and i != 0:
             print(f'time: {current_time}')
-            split_id = min(server_queue.queue[-1].idx if server_queue.qsize() != 0 else np.Inf, current_event.idx) - 50
+            least_recent_packet = [server.queue[-1].idx if server.qsize() != 0 else np.inf for server in servers_queue]
+            least_recent_packet = min(least_recent_packet)
+            split_id = min(least_recent_packet, current_event.idx) - 50
             # print(f'Split id: {split_id} {queue_id}')
             df = packets.loc[packets['idx'] < split_id]
             
