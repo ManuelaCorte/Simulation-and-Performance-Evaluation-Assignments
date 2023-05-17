@@ -1,3 +1,4 @@
 End of simulation only after certain amount of time or also for other events (e.g. certain number of packets served)
 How to count packets that entered the system but weren't served because the simulation ended
 Average time in the queue weigthed
+Autocorrelation cutoff seems to get larger and larger for longer simulations

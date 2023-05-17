@@ -24,6 +24,8 @@ def simulation_loop(
         format="%(asctime)s %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
+    # If not needed, logging turned off to speed up simulation
+    logging.disable(logging.INFO)
 
     # We don't want to fill up the queue, but have at most a couple of arrivals and a departure
     queue = EventQueue(simulation_time)
@@ -227,12 +229,14 @@ def simulation_loop(
         current_time = current_event.time
 
     # Compute waiting and total time for each packet
-    packets['server_time'] = packets['departure_time'] - packets['service_time']
+    packets["server_time"] = packets["departure_time"] - packets["service_time"]
     packets["waiting_time"] = packets["service_time"] - packets["arrival_time"]
     packets["total_time"] = packets["departure_time"] - packets["arrival_time"]
 
     # Compute width of intervals in queue occupation
-    queue_occupation["width"] = queue_occupation["time"].shift(-1) - queue_occupation["time"]
+    queue_occupation["width"] = (
+        queue_occupation["time"].shift(-1) - queue_occupation["time"]
+    )
     # print(queue_occupation.head())
 
     # Drop rows with missing values (e.g. packets that entered the system but weren't served) (not sure if statistically correct)
