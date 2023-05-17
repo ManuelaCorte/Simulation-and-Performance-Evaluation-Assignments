@@ -4,14 +4,17 @@ import scipy.stats as stats
 import numpy as np
 import pandas as pd
 from utils.stats import Statistics
+from utils.SchedulingFunction import SchedulingFunction
 
 
 # Plots the distribution of the arrival times and compares it to a uniform distribution
 # Plots the distribution of the service times and compares it to an exponential distribution
 class Plotting:
-    def __init__(self, l, mu, simulation_time, packets, queue_occupation):
+    def __init__(self, l, mu, number_servers, length_queue, simulation_time, packets, queue_occupation):
         self.l = l
         self.mu = mu
+        self.number_servers = number_servers
+        self.length_queue = length_queue
         self.simulation_time = simulation_time
         self.packets = packets
         self.queue_occupation = queue_occupation
@@ -129,3 +132,22 @@ class Plotting:
                 ax.axhline(1 / (self.mu - self.l), color="r", label="Theoretical mean")
                 ax.set_title("Batch means of response times")
         ax.legend()
+
+    def plot_servers_per_policy(self, policy):
+        f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
+        
+        if self.number_servers == 1:
+            df = self.packets[self.packets["server_idx"] == 0.0]['waiting_time']  
+            ax.hist(df, bins="auto", density=True, label="Waiting times")
+            ax.set_title(f"Waiting times of server 1")
+            ax.legend()
+        else:
+            for i in range(self.number_servers):
+                df = self.packets[self.packets["server_idx"] == float(i)]['waiting_time']  
+                ax[i].hist(df, bins="auto", density=True, label="Waiting times")
+                ax[i].set_title(f"Waiting times of server {i}")
+                ax[i].legend()
+
+        f.suptitle(f"Waiting times of servers with {policy} policy")
+
+        

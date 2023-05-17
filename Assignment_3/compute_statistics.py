@@ -19,11 +19,12 @@ parser.add_argument(
 )
 
 # setting simulation parameters
-l = 1.5
-mu = 2.5
-n_servers = 2
-simulation_time = 15000
-max_queue_elements = 1000 # > 999 is considered infinite
+l = 1
+mu = 1.5
+n_servers = 1
+simulation_time = 5000
+# > 999 is considered infinite
+max_queue_elements = 100
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
@@ -44,7 +45,7 @@ else:
     packets, queue_occupation = simulation_loop(simulation_time, l, mu, gen, n_servers, max_queue_elements, SchedulingFunction.LeastFull)
 
 
-plot_util = Plotting(l, mu, simulation_time, packets, queue_occupation)
+plot_util = Plotting(l, mu, n_servers, max_queue_elements , simulation_time, packets, queue_occupation)
 
 # Plot distribution of arrival times and service times just to check they follow theoretical distributions
 plot_util.plot_preliminary_functions()
@@ -116,4 +117,8 @@ plot_util.plot_batch_means(
 plot_util.plot_batch_means(
     batch_means_response_time, intervals_response_time, Statistics.RESPONSE_TIME
 )
+
+plot_util.plot_servers_per_policy(SchedulingFunction.LeastFull)
+
+
 plt.show()

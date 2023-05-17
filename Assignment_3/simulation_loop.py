@@ -40,6 +40,7 @@ def simulation_loop(
     packets = pd.DataFrame(
         columns=[
             "idx",
+            "server_idx",
             "arrival_time",
             "service_time",
             "departure_time",
@@ -50,12 +51,18 @@ def simulation_loop(
     # Dataframe to store the packets in queue and the system at every time jump (and the width of that jump)
     # The widths of all jumps are computed at the end as the difference between the current time and the previous one
     queue_occupation = pd.DataFrame(
-        columns=["time", "packets_in_queue", "total_packets", "width"]
+        columns=["time", "server_idx", "packets_in_queue", "total_packets", "width"]
     )
 
-    packets_save = pd.DataFrame(columns=["idx", "arrival_time", "service_time", "departure_time", "waiting_time", "total_time"])
-    queue_occupation_save = pd.DataFrame(columns=["time", "packets_in_queue", "total_packets", "width"])
+    # Dataframe to store the discarded packets
+    discarded_packets = pd.DataFrame(columns=["idx", "arrival_time", "idx_server"])
+    
+    # Utils dataframes to store the cvs files
+    packets_save = pd.DataFrame(columns=["idx", "server_idx", "arrival_time", "service_time", "departure_time", "waiting_time", "total_time"])
+    queue_occupation_save = pd.DataFrame(columns=["time", "server_idx", "packets_in_queue", "total_packets", "width"])
+    discarded_packets_save = pd.DataFrame(columns=["idx", "arrival_time", "server_idx"])
     i = 0
+
     while True:
         match current_event.type:
             case EventType.start:
@@ -64,19 +71,21 @@ def simulation_loop(
                 try:
                     os.remove("packets.csv")
                     os.remove("queue_occupation.csv")
+                    os.remove("discarded_packets.csv")
                     packets.to_csv("packets.csv")
                     queue_occupation.to_csv("queue_occupation.csv")
+                    discarded_packets.to_csv("discarded_packets.csv")
                 except OSError:
                     pass
 
-                # Schedule first arrival
+                # Schedule first arrival in first server
                 arr = gen.exponential(1 / l)
                 queue.queue.put((arr, Event(EventType.arrival, arr, 0)))
 
-                packets.loc[0] = [0, arr, None, None, None, None]
+                packets.loc[0] = [0, 0, arr, None, None, None, None]
 
                 # Initial condition: system empty until first arrival
-                queue_occupation.loc[0.0] = [0.0, 0, 0, arr]
+                queue_occupation.loc[0.0] = [0.0, None, 0, 0, arr]
 
             case EventType.stop:
                 logging.info(f"Simulation completed")
@@ -88,6 +97,7 @@ def simulation_loop(
                 )
                 packets.loc[current_event.idx] = [
                     current_event.idx,
+                    None,
                     current_event.time,
                     None,
                     None,
@@ -121,11 +131,12 @@ def simulation_loop(
                         # A packet is being served so there are server_queue_size + 1 packets in the all system
                         queue_occupation.loc[current_time] = [
                             current_event.time,
+                            server_choosen,
                             servers_queue[server_choosen].qsize(),
                             servers_queue[server_choosen].qsize() + 1,
                             None,
                         ]
-
+                        packets.loc[current_event.idx]["server_idx"] = server_choosen
                         packets.loc[current_event.idx]["service_time"] = current_time
                         packets.loc[current_event.idx]["departure_time"] = (
                             current_time + service_time
@@ -149,6 +160,7 @@ def simulation_loop(
                         servers_queue[server_choosen].put(current_event)
                         queue_occupation.loc[current_time] = [
                             current_event.time,
+                            server_choosen,
                             servers_queue[server_choosen].qsize(),
                             servers_queue[server_choosen].qsize() + 1,
                             None,
@@ -157,9 +169,14 @@ def simulation_loop(
                             f"All servers busy, packet {current_event.idx} added to queue {server_choosen} at time {current_event.time}"
                         )
                     else:
-                        # TODO ADD LOGGING FOR DISCARDED PACKETS
+                        # Discarded packets are assigned server None
+                        packets.loc[current_event.idx]['server_idx'] = None
+                        idx = packets.loc[current_event.idx]['idx']     
+                        discarded_packets.loc[current_event.idx] = [idx, current_event.time, None]          
+                        # discarded_packets.lo({'idx': idx, 'arrival_time': current_event.time, 'idx_server': None}, axis=0)
                         queue_occupation.loc[current_time] = [
                             current_event.time,
+                            None,
                             servers_queue[server_choosen].qsize(),
                             servers_queue[server_choosen].qsize(),
                             None,
@@ -177,6 +194,7 @@ def simulation_loop(
                             EventType.arrival,
                             current_event.time + interarrival_time,
                             current_event.idx + 1,
+                            None
                         ),
                     )
                 )
@@ -194,6 +212,7 @@ def simulation_loop(
                     servers_busy[server_choosen] = False
                     queue_occupation.loc[current_time] = [
                         current_event.time,
+                        server_choosen,
                         0,
                         0,
                         None,
@@ -218,6 +237,7 @@ def simulation_loop(
 
                     queue_occupation.loc[current_time] = [
                         current_event.time,
+                        server_choosen,
                         servers_queue[server_choosen].qsize(),
                         servers_queue[server_choosen].qsize() + 1,
                         None,
@@ -279,4 +299,5 @@ def simulation_loop(
     # Save dataframes to csv for easier inspection
     packets_save.to_csv("packets.csv")
     queue_occupation_save.to_csv("queue_occupation.csv")
+    discarded_packets.to_csv("discarded_packets.csv")
     return packets_save, queue_occupation_save
