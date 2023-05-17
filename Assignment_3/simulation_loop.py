@@ -5,7 +5,8 @@ from queue import Queue
 import pandas as pd
 
 
-def simulation_loop(simulation_time, l, mu, gen):
+def simulation_loop(simulation_time, l, mu, gen, n_servers = 1):
+    print('new function')
     logging.basicConfig(
         level=logging.INFO,
         filename="simulation.log",
@@ -19,8 +20,8 @@ def simulation_loop(simulation_time, l, mu, gen):
 
     current_event: Event = queue.queue.get()[1]
     current_time = current_event.time
-    server_busy = False
-    server_queue = Queue()
+    servers_busy = [False for i in range(n_servers)]
+    servers_queue = [Queue() for i in range(n_servers)]
     # Dataframe to store time information about packets
     packets = pd.DataFrame(
         columns=[
@@ -46,7 +47,6 @@ def simulation_loop(simulation_time, l, mu, gen):
                 # Schedule first arrival
                 arr = gen.exponential(1 / l)
                 queue.queue.put((arr, Event(EventType.arrival, arr, 0)))
-                server_busy = False
 
                 packets.loc[0] = [0, arr, None, None, None, None]
 
@@ -69,47 +69,64 @@ def simulation_loop(simulation_time, l, mu, gen):
                     None,
                     None,
                 ]
-                if not server_busy:
-                    # Seize server to serve packet and schedule its departure based on the exponentail service time
-                    server_busy = True
-                    service_time = gen.exponential(1 / mu)
-                    # Note that the departure event added has the same idx as the arrival event that generated it
-                    queue.queue.put(
-                        (
-                            current_event.time + service_time,
-                            Event(
-                                EventType.departure,
+
+                # Find a server that is not busy and serve the package
+                server_choosen = 0
+                found_free_server = False
+                while server_choosen < n_servers:
+                    if servers_busy[server_choosen]:
+                        server_choosen = server_choosen + 1
+                    else:
+                        found_free_server = True
+                        # Seize server to serve packet and schedule its departure based on the exponentail service time
+                        servers_busy[server_choosen] = True
+                        service_time = gen.exponential(1 / mu)
+                        # Note that the departure event added has the same idx as the arrival event that generated it
+                        queue.queue.put(
+                            (
                                 current_event.time + service_time,
-                                current_event.idx,
-                                0,
-                            ),
+                                Event(
+                                    EventType.departure,
+                                    current_event.time + service_time,
+                                    current_event.idx,
+                                    server_choosen,
+                                ),
+                            )
                         )
-                    )
-                    # A packet is being served so there are server_queue_size + 1 packets in the all system
+                        # A packet is being served so there are server_queue_size + 1 packets in the all system
+                        queue_occupation.loc[current_time] = [
+                            current_event.time,
+                            servers_queue[server_choosen].qsize(),
+                            servers_queue[server_choosen].qsize() + 1,
+                            None,
+                        ]
+
+                        packets.loc[current_event.idx]["service_time"] = current_time
+                        packets.loc[current_event.idx]["departure_time"] = (
+                            current_time + service_time
+                        )
+
+                        logging.info(f"Server {server_choosen} free, serving packet {current_event.idx}")
+
+                
+                if not found_free_server:
+                    # All server busy, add arrived packet to server queue which has the least number of packets in queue
+                    server_choosen = 0
+                    for i in range(n_servers):
+                        # TODO multiple methods of choosing best server queue
+                        if servers_queue[i].qsize() < servers_queue[server_choosen].qsize():
+                            server_choosen = i
+                            
+                    # TODO ADD THE CHECK IF THE SERVER HAS REACHED THE MAXIMUM AMOUNT OF ELEMENTS IN ITS QUEUE
+                    servers_queue[server_choosen].put(current_event)
                     queue_occupation.loc[current_time] = [
                         current_event.time,
-                        server_queue.qsize(),
-                        server_queue.qsize() + 1,
-                        None,
-                    ]
-
-                    packets.loc[current_event.idx]["service_time"] = current_time
-                    packets.loc[current_event.idx]["departure_time"] = (
-                        current_time + service_time
-                    )
-
-                    logging.info(f"Server free, serving packet {current_event.idx}")
-                else:
-                    # Server busy, add arrived packet to server queue
-                    server_queue.put(current_event)
-                    queue_occupation.loc[current_time] = [
-                        current_event.time,
-                        server_queue.qsize(),
-                        server_queue.qsize() + 1,
+                        servers_queue[server_choosen].qsize(),
+                        servers_queue[server_choosen].qsize() + 1,
                         None,
                     ]
                     logging.info(
-                        f"Server busy, packet {current_event.idx} added to queue at time {current_event.time}"
+                        f"All servers busy, packet {current_event.idx} added to queue {server_choosen} at time {current_event.time}"
                     )
 
                 # Regardless of whether the server is busy or not schedule next arrival so that the queue is never empty
@@ -131,10 +148,11 @@ def simulation_loop(simulation_time, l, mu, gen):
                 )
                 # Update the departure time of the packet
                 packets.loc[current_event.idx]["departure_time"] = current_time
+                server_choosen = current_event.server
 
-                if server_queue.empty():
+                if servers_queue[server_choosen].empty():
                     # No package in the queue, free server
-                    server_busy = False
+                    servers_busy[server_choosen] = False
                     queue_occupation.loc[current_time] = [
                         current_event.time,
                         0,
@@ -144,8 +162,8 @@ def simulation_loop(simulation_time, l, mu, gen):
 
                 else:
                     # Since there was a departure the server is free to serve another packet --> pick one from the server queue
-                    server_busy = True
-                    pending_packet = server_queue.get()
+                    servers_busy[server_choosen] = True
+                    pending_packet = servers_queue[server_choosen].get()
                     service_time = gen.exponential(1 / mu)
                     queue.queue.put(
                         (
@@ -154,15 +172,15 @@ def simulation_loop(simulation_time, l, mu, gen):
                                 EventType.departure,
                                 current_event.time + service_time,
                                 pending_packet.idx,
-                                0
+                                server_choosen
                             ),
                         )
                     )
 
                     queue_occupation.loc[current_time] = [
                         current_event.time,
-                        server_queue.qsize(),
-                        server_queue.qsize() + 1,
+                        servers_queue[server_choosen].qsize(),
+                        servers_queue[server_choosen].qsize() + 1,
                         None,
                     ]
                     packets.loc[pending_packet.idx]["service_time"] = current_time

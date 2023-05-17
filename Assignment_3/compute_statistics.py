@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pandas.plotting as pdplt
 import scipy.stats as stats
 from simulation_loop import simulation_loop
-from simulation_loop_multiple_servers import simulation_loop_multiple_servers
 from utils.plotting import Plotting
 import pandas as pd
 import scipy.signal as signal
