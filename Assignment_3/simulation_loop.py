@@ -3,7 +3,7 @@ import numpy as np
 from utils.event import Event, EventType, EventQueue
 from queue import Queue
 import pandas as pd
-
+import os
 
 def simulation_loop(simulation_time, l, mu, gen):
     logging.basicConfig(
@@ -40,10 +40,21 @@ def simulation_loop(simulation_time, l, mu, gen):
         columns=["time", "packets_in_queue", "total_packets", "width"]
     )
 
+    packets_save = pd.DataFrame(columns=["idx", "arrival_time", "service_time", "departure_time", "waiting_time", "total_time"])
+    queue_occupation_save = pd.DataFrame(columns=["time", "packets_in_queue", "total_packets", "width"])
+    i = 0
     while True:
         match current_event.type:
             case EventType.start:
                 logging.info(f"Simulation started")
+                # Remove csv files if they exist
+                try:
+                    os.remove("packets.csv")
+                    os.remove("queue_occupation.csv")
+                    packets.to_csv("packets.csv")
+                    queue_occupation.to_csv("queue_occupation.csv")
+                except OSError:
+                    pass
 
                 # Schedule first arrival
                 arr = gen.exponential(1 / l)
@@ -179,27 +190,44 @@ def simulation_loop(simulation_time, l, mu, gen):
                 logging.info(
                     f"Unknown event type {current_event.type} {current_event.time}"
                 )
-                break
+                break 
+        
+        if i % 10000 == 0 and i != 0:
+            print(f'time: {current_time}')
+            split_id = min(server_queue.queue[-1].idx if server_queue.qsize() != 0 else np.Inf, current_event.idx) - 50
+            # print(f'Split id: {split_id} {queue_id}')
+            df = packets.loc[packets['idx'] < split_id]
+            
+            packets_save = pd.concat([packets_save, df]).drop_duplicates('idx').reset_index(drop=True)
+            queue_occupation_save = pd.concat([queue_occupation_save, queue_occupation]).drop_duplicates('time').reset_index(drop=True)
+
+            packets = packets.loc[packets['idx'] >= split_id]
+            # print(packets)
+            queue_occupation = queue_occupation[-1:]
 
         current_event = queue.queue.get()[1]
-        current_time = current_event.time
-
+        current_time = current_event.time   
+        i += 1
+    # Add final packets to save
+    packets_save = pd.concat([packets_save, packets]).drop_duplicates('idx').reset_index(drop=True)
+    queue_occupation_save = pd.concat([queue_occupation_save, queue_occupation]).drop_duplicates('time').reset_index(drop=True)
+    
     # Compute waiting and total time for each packet
-    packets["server_time"] = packets["departure_time"] - packets["service_time"]
-    packets["waiting_time"] = packets["service_time"] - packets["arrival_time"]
-    packets["total_time"] = packets["departure_time"] - packets["arrival_time"]
+    packets_save["server_time"] = packets_save["departure_time"] - packets_save["service_time"]
+    packets_save["waiting_time"] = packets_save["service_time"] - packets_save["arrival_time"]
+    packets_save["total_time"] = packets_save["departure_time"] - packets_save["arrival_time"]
 
     # Compute width of intervals in queue occupation
-    queue_occupation["width"] = (
-        queue_occupation["time"].shift(-1) - queue_occupation["time"]
+    queue_occupation_save["width"] = (
+        queue_occupation_save["time"].shift(-1) - queue_occupation_save["time"]
     )
-    # print(queue_occupation.head())
+    print(queue_occupation_save.head())
 
     # Drop rows with missing values (e.g. packets that entered the system but weren't served) (not sure if statistically correct)
-    packets.dropna(inplace=True)
-    queue_occupation.dropna(inplace=True)
+    packets_save.dropna(inplace=True)
+    queue_occupation_save.dropna(inplace=True)
 
     # Save dataframes to csv for easier inspection
-    packets.to_csv("packets.csv")
-    queue_occupation.to_csv("queue_occupation.csv")
-    return packets, queue_occupation
+    packets_save.to_csv("packets.csv")
+    queue_occupation_save.to_csv("queue_occupation.csv")
+    return packets_save, queue_occupation_save

@@ -20,7 +20,7 @@ parser.add_argument(
 # setting simulation parameters
 l = 1.5
 mu = 2.5
-simulation_time = 5000
+simulation_time = 150000
 gen = np.random.default_rng(seed=41)
 args = parser.parse_args()
 
