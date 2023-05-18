@@ -21,8 +21,8 @@ parser.add_argument(
 # setting simulation parameters
 l = 1.5
 mu = 2.5
-n_servers = 2
-simulation_time = 200000
+n_servers = 1
+simulation_time = 60000
 # > 999 is considered infinite
 max_queue_elements = 10
 gen = np.random.default_rng(seed=41)
@@ -107,7 +107,7 @@ print(
         Average waiting time (simulation): {grand_mean_waiting_time} +- {ci_amplitude_waiting_time}"""
 )
 
-plot_util.plot_queue_occupation(avg_packets_in_system_sim)
+plot_util.plot_system_occupation(avg_packets_in_system_sim)
 
 plot_util.plot_utilization()
 

@@ -68,17 +68,18 @@ class Plotting:
         ax.set_title("Waiting time distribution")
         ax.legend()
 
-    def plot_queue_occupation(self, sim_mean):
+    def plot_system_occupation(self, sim_mean):
         f, ax = plt.subplots(1, figsize=(10, 20))
         ax.step(
             self.queue_occupation["width"].cumsum(),
             self.queue_occupation["total_packets"],
-            label="Packets in queue",
+            label="Packets in system",
         )
-        ax.axhline(self.avg_queue_length_th, label="Theoretical mean", color="b")
+        # print(self.avg_packets_in_system_th)
+        ax.axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
         ax.axhline(sim_mean, label="Simulation mean", color="r")
 
-        ax.set_title("Queue occupation")
+        ax.set_title("System occupation")
         ax.legend()
 
     def plot_utilization(self):
@@ -134,43 +135,33 @@ class Plotting:
         ax.legend()
 
     def plot_servers_per_policy(self, policy):
-        f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
         
-        if self.number_servers == 1:
-            df = self.packets[self.packets["server_idx"] == 0]['waiting_time']  
-            ax.hist(df, bins="auto", density=True, label="Waiting times")
-            ax.set_title(f"Waiting times of server 1")
-            ax.legend()
-        else:
+        if self.number_servers > 1:
+            # Waiting times per server
+            f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
             for i in range(self.number_servers):
                 df = self.packets[self.packets["server_idx"] == i]['waiting_time']
                 print(f'Number packets server {i}: {len(df)}')  
                 ax[i].hist(df, bins="auto", density=True, label="Waiting times")
                 ax[i].set_title(f"Waiting times of server {i}")
                 ax[i].legend()
-        f.suptitle(f"Waiting times of servers with {policy} policy")
+            f.suptitle(f"Waiting times of servers with {policy} policy")
 
-        
-        f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
-        if self.number_servers == 1:
-            values = self.queue_occupation[self.queue_occupation['server_idx'] == 0]
-            ax.step(
-                values["width"].cumsum(),
-                values["total_packets"],
-                label="Queue occupation for server 1 ",
-            )
-            ax.set_title(f"Queue occupation for policy 1 ")
-            ax.legend()
-        else:
+
+            # Queue occupation per server
+            f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
             for i in range(self.number_servers):
-                values = self.queue_occupation[self.queue_occupation['server_idx'] == i]
+                # values = self.queue_occupation['packets_in_queue']
+                values = self.queue_occupation['packets_in_queue'].map(lambda x: x[0])
+                print(f'server: {i}, {values}')
+                # print(f'Number packets server {i}: {va}')
                 ax[i].step(
-                    values["width"].cumsum(),
-                    values["total_packets"],
+                    self.queue_occupation["width"].cumsum(),
+                    values,
                     label=f"Queue occupation for server {i} ",
                 )
                 ax[i].set_title(f"Queue occupation for server {i}")
                 ax[i].legend()
-        f.suptitle(f"Queue occupation for {policy} policy")
+            f.suptitle(f"Queue occupation for {policy} policy")
 
         

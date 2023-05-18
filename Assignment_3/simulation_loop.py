@@ -27,7 +27,7 @@ def simulation_loop(
         datefmt="%m/%d/%Y %I:%M:%S %p",
     )
     # If not needed, logging turned off to speed up simulation
-    # logging.disable(logging.INFO)
+    logging.disable(logging.INFO)
 
     # We don't want to fill up the queue, but have at most a couple of arrivals and a departure
     queue = EventQueue(simulation_time)
@@ -41,8 +41,6 @@ def simulation_loop(
     packets = []
     queue_occupation = []
     discarded_packets = []
-    
-    i = 0
 
     while True:
         match current_event.type:
@@ -63,7 +61,8 @@ def simulation_loop(
                 # packets.append({'idx':0, 'server_idx':0, 'arrival_time':arr, 'service_time':None, 'departure_time': None, 'waiting_time':None, 'total_time':None})
 
                 # Initial condition: system empty until first arrival
-                queue_occupation.append({'time':0.0, 'server_idx':None, 'packets_in_queue':0, 'total_packets':0, 'width':arr})
+                servers = [0 for i in range(n_servers)]
+                queue_occupation.append({'time':0.0, 'packets_in_queue': servers, 'total_packets':0, 'width':arr})
 
             case EventType.stop:
                 logging.info(f"Simulation completed")
@@ -100,7 +99,9 @@ def simulation_loop(
                             )
                         )
                         # A packet is being served so there are server_queue_size + 1 packets in the all system
-                        event = {'time':current_time, 'server_idx':server_choosen, 'packets_in_queue':servers_queue[server_choosen].qsize() , 'total_packets':servers_queue[server_choosen].qsize() + 1, 'width':None}
+                        packets_in_queues = [servers_queue[i].qsize() for i in range(n_servers)]
+                        total_packets = sum(packets_in_queues) + 1
+                        event = {'time':current_time, 'packets_in_queue':packets_in_queues, 'total_packets':total_packets, 'width':None}
                         queue_occupation.append(event)
 
                         packets[current_event.idx]['server_idx'] = server_choosen
@@ -126,7 +127,9 @@ def simulation_loop(
                     if servers_queue[server_choosen].qsize() <= max_queue_elements:
                         servers_queue[server_choosen].put(current_event)
                         # print(current_event)
-                        event = {'time':current_time, 'server_idx':server_choosen, 'packets_in_queue':servers_queue[server_choosen].qsize() , 'total_packets':servers_queue[server_choosen].qsize() + 1, 'width':None}
+                        packets_in_queues = [servers_queue[i].qsize() for i in range(n_servers)]
+                        total_packets = sum(packets_in_queues) + 1
+                        event = {'time':current_time, 'packets_in_queue':packets_in_queues, 'total_packets':total_packets, 'width':None}
                         queue_occupation.append(event)
 
                         logging.info(
@@ -136,7 +139,9 @@ def simulation_loop(
                         # Discarded packets are assigned server None
                         packets[current_event.idx]['server_idx'] = None   
                         discarded_packets.append({'idx': current_event.idx, 'arrival_time': current_event.time, 'server_idx': None})     
-                        event = {'time':current_time, 'server_idx':None, 'packets_in_queue':servers_queue[server_choosen].qsize() , 'total_packets':servers_queue[server_choosen].qsize(), 'width':None}
+                        
+                        packets_in_queues = [servers_queue[i].qsize() for i in range(n_servers)]
+                        event = {'time':current_time, 'packets_in_queue':packets_in_queues, 'total_packets':sum(packets_in_queues), 'width':None}
                         queue_occupation.append(event)                      
 
                         logging.info(
@@ -168,7 +173,8 @@ def simulation_loop(
                 if servers_queue[server_choosen].empty():
                     # No package in the queue, free server
                     servers_busy[server_choosen] = False
-                    event = {'time':current_time, 'server_idx':server_choosen, 'packets_in_queue':0 , 'total_packets':0, 'width':None}
+                    packets_in_queues = [servers_queue[i].qsize() for i in range(n_servers)]
+                    event = {'time':current_time, 'packets_in_queue':packets_in_queues, 'total_packets': sum(packets_in_queues), 'width':None}
                     queue_occupation.append(event) 
 
                 else:
@@ -187,8 +193,9 @@ def simulation_loop(
                             ),
                         )
                     )
-
-                    event = {'time':current_time, 'server_idx':server_choosen, 'packets_in_queue':servers_queue[server_choosen].qsize() , 'total_packets':servers_queue[server_choosen].qsize() + 1, 'width':None}
+                    packets_in_queues = [servers_queue[i].qsize() for i in range(n_servers)]
+                    total_packets = sum(packets_in_queues) + 1
+                    event = {'time':current_time, 'packets_in_queue':packets_in_queues, 'total_packets':total_packets, 'width':None}
                     queue_occupation.append(event)          
 
                     packets[pending_packet.idx]["server_idx"] = server_choosen
@@ -236,8 +243,9 @@ def simulation_loop(
     discarded_packets_save.dropna(inplace=True)
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    queue_occupation_save['server_idx'] = queue_occupation_save['server_idx'].astype(int)
-    
+    # queue_occupation_save['server_idx'] = queue_occupation_save['server_idx'].astype(int)
+    queue_occupation_save['packets_in_queue'] = queue_occupation_save['packets_in_queue'].tolist()
+
     # Save dataframes to csv for easier inspection
     packets_save.to_csv("packets.csv", index=False)
     queue_occupation_save.to_csv("queue_occupation.csv", index=False)
