@@ -70,15 +70,15 @@ class Plotting:
 
     def plot_system_occupation(self, sim_mean):
         f, ax = plt.subplots(1, figsize=(10, 20))
-        ax.step(
-            self.queue_occupation["width"].cumsum(),
-            self.queue_occupation["total_packets"],
-            label="Packets in system",
-        )
-        # print(self.avg_packets_in_system_th)
-        ax.axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
-        ax.axhline(sim_mean, label="Simulation mean", color="r")
+        # ax.step(
+        #     self.queue_occupation["width"].cumsum(),
+        #     self.queue_occupation["total_packets"],
+        #     label="Packets in queue",
+        # )
+        # ax.axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
+        # ax.axhline(sim_mean, label="Simulation mean", color="r")
 
+        ax.hist(self.queue_occupation["total_packets"], 20)
         ax.set_title("System occupation")
         ax.legend()
 
