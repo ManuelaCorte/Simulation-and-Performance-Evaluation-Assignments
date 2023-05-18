@@ -167,4 +167,17 @@ class Plotting:
                 ax[i].legend()
             f.suptitle(f"Queue occupation for {policy} policy")
 
+    def plot_discarded_packets(self):
+        discarded = pd.read_csv("discarded_packets.csv")
+        # print(discarded.head())
+        f, ax = plt.subplots(1, figsize=(10, 20))
+        x = np.arange(0, discarded.loc[len(discarded) - 1]['arrival_time'])
+        # Plot discarded packets as isolated points based on their arrival time
+        ax.hist(discarded['arrival_time'], bins='auto', label="Discarded packets")
+        # ax.scatter(discarded['arrival_time'], discarded['idx'], label="Discarded packets")
+        ax.set_title("Discarded packets during simulation")
+        ax.set_xlabel("Arrival time")
+        ax.set_ylabel("Packet index")
+        ax.legend()
+
         

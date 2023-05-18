@@ -24,7 +24,7 @@ mu = 0.8 # 1.6 2.5
 n_servers = 2
 simulation_time = 5000 # 7500 11000 packets for 5000 time
 # > 999 is considered infinite
-max_queue_elements = 3
+max_queue_elements = 10
 gen = np.random.default_rng(seed=41)
 scheduling = SchedulingFunction.LeastFull
 args = parser.parse_args()
@@ -121,5 +121,9 @@ plot_util.plot_batch_means(
 
 plot_util.plot_servers_per_policy(scheduling)
 
+# plot_util.plot_discarded_packets()
+
+discarded_packets_fraction = len(discarded_packets) / number_of_packets * 100
+print(f"Discarded packets fraction: {discarded_packets_fraction:.2f}%")
 
 plt.show()
