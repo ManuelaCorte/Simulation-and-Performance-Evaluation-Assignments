@@ -109,6 +109,8 @@ def simulation_loop(
                         packets[current_event.idx]['server_time'] = service_time
                         logging.info(f"Server {server_choosen} free, serving packet {current_event.idx}")
 
+                        break
+
                 
                 if not found_free_server:
                     match scheduling_function:

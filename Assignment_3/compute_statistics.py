@@ -19,10 +19,10 @@ parser.add_argument(
 )
 
 # setting simulation parameters
-l = 3.5
-mu = 2
-n_servers = 4
-simulation_time = 500
+l = 1.5
+mu = 2.5
+n_servers = 2
+simulation_time = 200000
 # > 999 is considered infinite
 max_queue_elements = 10
 gen = np.random.default_rng(seed=41)
