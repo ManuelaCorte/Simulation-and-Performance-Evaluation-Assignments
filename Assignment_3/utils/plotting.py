@@ -69,18 +69,21 @@ class Plotting:
         ax.legend()
 
     def plot_system_occupation(self, sim_mean):
-        f, ax = plt.subplots(1, figsize=(10, 20))
-        # ax.step(
-        #     self.queue_occupation["width"].cumsum(),
-        #     self.queue_occupation["total_packets"],
-        #     label="Packets in queue",
-        # )
-        # ax.axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
-        # ax.axhline(sim_mean, label="Simulation mean", color="r")
+        f, ax = plt.subplots(2, figsize=(10, 20))
+        ax[0].step(
+            self.queue_occupation["width"].cumsum(),
+            self.queue_occupation["total_packets"],
+            label="System occupation",
+        )
+        ax[0].axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
+        ax[0].axhline(sim_mean, label="Simulation mean", color="r")
+        ax[0].legend()
 
-        ax.hist(self.queue_occupation["total_packets"], bins="auto")
-        ax.set_title("System occupation")
-        ax.legend()
+        ax[1].hist(self.queue_occupation["total_packets"], bins='auto', width=1)
+        print(self.queue_occupation["total_packets"].mode())
+        ax[1].set_title("System occupation")
+        ax[1].legend()
+        f.suptitle("System occupation")
 
     def plot_utilization(self):
         f, ax = plt.subplots(1, figsize=(10, 20))
@@ -141,7 +144,9 @@ class Plotting:
             f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
             for i in range(self.number_servers):
                 df = self.packets[self.packets["server_idx"] == i]['waiting_time']
-                ax[i].hist(df, bins="auto", density=True, label="Waiting times")
+                # Create histogram of waiting taking into consideration that they are discrete values
+                ax[i].hist(df, label="Waiting times")
+                # ax[i].hist(df, bins="auto", density=True, label="Waiting times")
                 ax[i].set_title(f"Waiting times of server {i}")
                 ax[i].legend()
             f.suptitle(f"Waiting times of servers with {policy} policy")
@@ -157,7 +162,7 @@ class Plotting:
                 #     values,
                 #     label=f"Queue occupation for server {i} ",
                 # )
-                ax[i].hist(values, bins="auto")
+                ax[i].plot(values, kind='bar')
                 ax[i].set_title(f"Queue occupation for server {i}")
                 ax[i].legend()
             f.suptitle(f"Queue occupation for {policy} policy")

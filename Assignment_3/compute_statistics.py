@@ -20,9 +20,9 @@ parser.add_argument(
 
 # setting simulation parameters
 l = 1.5
-mu = 2.5
+mu = 1.6 # 1.6 2.5
 n_servers = 1
-simulation_time = 60000
+simulation_time = 5000 # 7500 11000 packets for 5000 time
 # > 999 is considered infinite
 max_queue_elements = 10
 gen = np.random.default_rng(seed=41)
@@ -76,16 +76,16 @@ utilization = (
     ci_amplitude_waiting_time,
     batch_means_waiting_time,
     intervals_waiting_time,
-) = compute_batch_means_statistics(Statistics.WAITING_TIME, packets, 6000, 20000, 0.95)
+) = compute_batch_means_statistics(Statistics.WAITING_TIME, packets, 10000, 40000, 0.95)
 
-# Techinically we should check that the batch size and the initialization bias is the same observed for the waiting times
-# but the MM1 queue is simple enough that we assume it is the same
+# We check init bias and appropriate batch size but values using the same values as for the wainting times does not give much different results 
+# batch_size = 9000 cutoff = 40000
 (
     grand_mean_response_time,
     ci_amplitude_response_time,
     batch_means_response_time,
     intervals_response_time,
-) = compute_batch_means_statistics(Statistics.RESPONSE_TIME, packets, 6000, 20000, 0.95)
+) = compute_batch_means_statistics(Statistics.RESPONSE_TIME, packets, 10000, 40000, 0.95)
 
 
 # Check if the time the system is used is equal to the theoretical value rho

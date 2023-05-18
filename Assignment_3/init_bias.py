@@ -39,15 +39,20 @@ else:
 
 df = reduce(lambda a, b: a.add(b, fill_value=0), vars)
 f, ax = plt.subplots(1)
-for i in range(number_of_runs):
-    # avg = vars[i].cumsum() / (np.arange(len(vars[i])) + 1)
-    ax.plot(vars[i].expanding().mean(), label=f"Waiting time run {i}")
-ax.plot(
-    df.expanding().mean() / number_of_runs, label="Average waiting time across runs", linewidth=3
-)
 if args.wt:
+    ax.set_title("Initialization bias for waiting time")
+    for i in range(number_of_runs):
+        ax.plot(vars[i].expanding().mean(), label=f"Waiting time run {i}")
+    ax.plot(
+        df.expanding().mean() / number_of_runs, label="Average waiting time across runs", linewidth=3, color="red")
     ax.axhline(rho / (mu - l), label="Theoretical value")
-else:
+elif args.rt:
+    ax.set_title("Initialization bias for response time")
+    for i in range(number_of_runs):
+        ax.plot(vars[i].expanding().mean(), label=f"Response time run {i}")
+    ax.plot(
+        df.expanding().mean() / number_of_runs, label="Average response time across runs", linewidth=3, color="red"
+    )
     ax.axhline(1 / (mu - l), label="Theoretical value")
 ax.legend()
 

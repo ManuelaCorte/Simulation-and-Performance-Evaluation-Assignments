@@ -33,8 +33,7 @@ def compute_batch_means_statistics(type, packets, batch_size, warmup_time, z):
 
     # Compute batches means
     batch_means = [np.mean(batch) for batch in batches]
-    # eta = stats.t.ppf(1 - (1 - z) / 2, number_of_batches - 1)
-    eta = stats.norm.ppf(1 - (1 - z) / 2)
+    eta = stats.norm.ppf((1 + z) / 2) # We have enough batches to use the CLT
     ci_amps = [eta * np.std(batch) / np.sqrt(batch_size) for batch in batches]
 
     # This way we are checking whether the batches are independent one from the other
