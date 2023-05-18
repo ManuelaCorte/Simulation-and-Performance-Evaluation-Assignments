@@ -106,7 +106,7 @@ def simulation_loop(
                         packets[current_event.idx]['server_idx'] = server_choosen
                         packets[current_event.idx]['service_time'] = current_time 
                         packets[current_event.idx]['departure_time'] = current_time + service_time
-
+                        packets[current_event.idx]['server_time'] = service_time
                         logging.info(f"Server {server_choosen} free, serving packet {current_event.idx}")
 
                 
@@ -194,6 +194,7 @@ def simulation_loop(
                     packets[pending_packet.idx]["departure_time"] = (
                         current_time + service_time
                     )
+                    packets[pending_packet.idx]["server_time"] = service_time
                     logging.info(
                         f"Picking package {pending_packet.idx} from queue and serving it at time {current_time}"
                     )
@@ -219,7 +220,6 @@ def simulation_loop(
     
     # Compute waiting and total time for each packet
     packets_save["waiting_time"] = packets_save["service_time"] - packets_save["arrival_time"]
-    packets_save["server_time"] = packets_save["departure_time"] - packets_save["service_time"]
     packets_save["total_time"] = packets_save["departure_time"] - packets_save["arrival_time"]
 
     # Compute width of intervals in queue occupation

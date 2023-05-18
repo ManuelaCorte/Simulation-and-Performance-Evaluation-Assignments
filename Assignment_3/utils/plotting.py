@@ -81,7 +81,7 @@ class Plotting:
         ax.set_title("Queue occupation")
         ax.legend()
 
-    def plot_utilization(self, n_servers):
+    def plot_utilization(self):
         f, ax = plt.subplots(1, figsize=(10, 20))
         avg = (
             self.queue_occupation[self.queue_occupation["total_packets"] != 0][
@@ -90,7 +90,7 @@ class Plotting:
             / self.queue_occupation["width"].cumsum()
         )
         ax.plot(avg, label="Utilization", color="b")
-        ax.axhline(self.rho, label="Theoretical value", color="r")
+        ax.axhline(self.rho / self.number_servers, label="Theoretical value", color="r")
         ax.set_title("Utilization")
         ax.legend()
 
@@ -137,13 +137,14 @@ class Plotting:
         f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
         
         if self.number_servers == 1:
-            df = self.packets[self.packets["server_idx"] == 0.0]['waiting_time']  
+            df = self.packets[self.packets["server_idx"] == 0]['waiting_time']  
             ax.hist(df, bins="auto", density=True, label="Waiting times")
             ax.set_title(f"Waiting times of server 1")
             ax.legend()
         else:
             for i in range(self.number_servers):
-                df = self.packets[self.packets["server_idx"] == i]['waiting_time']  
+                df = self.packets[self.packets["server_idx"] == i]['waiting_time']
+                print(f'Number packets server {i}: {len(df)}')  
                 ax[i].hist(df, bins="auto", density=True, label="Waiting times")
                 ax[i].set_title(f"Waiting times of server {i}")
                 ax[i].legend()
@@ -166,7 +167,7 @@ class Plotting:
                 ax[i].step(
                     values["width"].cumsum(),
                     values["total_packets"],
-                    label="Queue occupation for server 1 ",
+                    label=f"Queue occupation for server {i} ",
                 )
                 ax[i].set_title(f"Queue occupation for server {i}")
                 ax[i].legend()

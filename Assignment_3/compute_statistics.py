@@ -19,12 +19,12 @@ parser.add_argument(
 )
 
 # setting simulation parameters
-l = 1.5
+l = 3.5
 mu = 2
-n_servers = 2
-simulation_time = 100
+n_servers = 4
+simulation_time = 500
 # > 999 is considered infinite
-max_queue_elements = 1000
+max_queue_elements = 10
 gen = np.random.default_rng(seed=41)
 scheduling = SchedulingFunction.LeastFull
 args = parser.parse_args()
@@ -109,7 +109,7 @@ print(
 
 plot_util.plot_queue_occupation(avg_packets_in_system_sim)
 
-plot_util.plot_utilization(n_servers)
+plot_util.plot_utilization()
 
 plot_util.plot_batch_means(
     batch_means_waiting_time, intervals_waiting_time, Statistics.WAITING_TIME
