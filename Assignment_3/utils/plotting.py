@@ -162,7 +162,7 @@ class Plotting:
                 #     values,
                 #     label=f"Queue occupation for server {i} ",
                 # )
-                ax[i].plot(values, kind='bar')
+                ax[i].hist(values, bins='auto', width=1)
                 ax[i].set_title(f"Queue occupation for server {i}")
                 ax[i].legend()
             f.suptitle(f"Queue occupation for {policy} policy")

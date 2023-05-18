@@ -20,11 +20,11 @@ parser.add_argument(
 
 # setting simulation parameters
 l = 1.5
-mu = 1.6 # 1.6 2.5
-n_servers = 1
+mu = 0.8 # 1.6 2.5
+n_servers = 2
 simulation_time = 5000 # 7500 11000 packets for 5000 time
 # > 999 is considered infinite
-max_queue_elements = 10
+max_queue_elements = 3
 gen = np.random.default_rng(seed=41)
 scheduling = SchedulingFunction.LeastFull
 args = parser.parse_args()
