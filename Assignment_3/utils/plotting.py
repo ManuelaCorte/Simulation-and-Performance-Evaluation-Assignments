@@ -78,7 +78,7 @@ class Plotting:
         # ax.axhline(self.avg_packets_in_system_th, label="Theoretical mean", color="b")
         # ax.axhline(sim_mean, label="Simulation mean", color="r")
 
-        ax.hist(self.queue_occupation["total_packets"], 20)
+        ax.hist(self.queue_occupation["total_packets"], bins="auto")
         ax.set_title("System occupation")
         ax.legend()
 
@@ -141,7 +141,6 @@ class Plotting:
             f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
             for i in range(self.number_servers):
                 df = self.packets[self.packets["server_idx"] == i]['waiting_time']
-                print(f'Number packets server {i}: {len(df)}')  
                 ax[i].hist(df, bins="auto", density=True, label="Waiting times")
                 ax[i].set_title(f"Waiting times of server {i}")
                 ax[i].legend()
@@ -152,14 +151,13 @@ class Plotting:
             f, ax = plt.subplots(self.number_servers, figsize=(10, 20))
             for i in range(self.number_servers):
                 # values = self.queue_occupation['packets_in_queue']
-                values = self.queue_occupation['packets_in_queue'].map(lambda x: x[0])
-                print(f'server: {i}, {values}')
-                # print(f'Number packets server {i}: {va}')
-                ax[i].step(
-                    self.queue_occupation["width"].cumsum(),
-                    values,
-                    label=f"Queue occupation for server {i} ",
-                )
+                values = self.queue_occupation['packets_in_queue'].map(lambda x: x[i])
+                # ax[i].step(
+                #     self.queue_occupation["width"].cumsum(),
+                #     values,
+                #     label=f"Queue occupation for server {i} ",
+                # )
+                ax[i].hist(values, bins="auto")
                 ax[i].set_title(f"Queue occupation for server {i}")
                 ax[i].legend()
             f.suptitle(f"Queue occupation for {policy} policy")
