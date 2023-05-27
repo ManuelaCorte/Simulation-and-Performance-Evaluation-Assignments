@@ -1,7 +1,7 @@
 import numpy as np
-import scipy.stats as stats
+import scipy.stats as stats #type: ignore
 from utils.stats import Statistics
-import pandas.plotting as pdplt
+import pandas.plotting as pdplt #type: ignore
 import matplotlib.pyplot as plt
 
 # We remove the warmup period --> batches are stationary

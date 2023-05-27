@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-import pandas.plotting as pdplt
-import scipy.stats as stats
+import pandas.plotting as pdplt #type: ignore
+import scipy.stats as stats #type: ignore
 import numpy as np
 import pandas as pd
 from utils.stats import Statistics

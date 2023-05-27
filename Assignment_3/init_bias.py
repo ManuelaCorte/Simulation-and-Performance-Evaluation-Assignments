@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import numpy as np
 import matplotlib.pyplot as plt
 from simulation_loop import simulation_loop

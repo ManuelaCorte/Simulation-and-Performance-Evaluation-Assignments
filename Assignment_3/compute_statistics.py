@@ -59,11 +59,11 @@ plot_util.plot_waiting_times_distribution()
 # plot_util.plot_auto_correlation(Statistics.WAITING_TIME)
 # plot_util.plot_auto_correlation(Statistics.RESPONSE_TIME)
 
-total_width = np.sum(queue_occupation["width"])
+total_width = np.sum(queue_occupation["width"].values)
 number_of_packets = len(packets)
 
 avg_packets_in_system_sim = (
-    np.sum(queue_occupation["total_packets"] * queue_occupation["width"]) / total_width
+    np.sum(queue_occupation["total_packets"].values * queue_occupation["width"].values) / total_width
 )
 
 utilization = (
