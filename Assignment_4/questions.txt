@@ -1,0 +1,2 @@
+For pi estimation do we need to do multiple runs to compute the confidence intervals or do we compute them using the
+standard deviation of the points in a single run 
