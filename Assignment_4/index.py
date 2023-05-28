@@ -7,7 +7,7 @@ gen = np.random.default_rng(seed=41)
 
 p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
-runs = 1000
+runs = 10000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_5_sim_axis = []

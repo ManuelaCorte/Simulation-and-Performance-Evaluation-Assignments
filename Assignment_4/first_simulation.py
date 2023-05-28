@@ -19,7 +19,7 @@ msg_5_graph_cis = []
 r = 2
 N = 2
 for p in probabilities:
-    results_2_sim = multiple_sim(gen, r, N, p, runs)
+    results_2_sim = multiple_sim(gen, r, N, p, runs, extended=True)
     d_zero_msg_2_sim_axis.append(results_2_sim.total_mean)
     d_zero_msg_2_sim_ci.append(results_2_sim.ci_total_mean)
     msg_2_graph_avgs.append(results_2_sim.graph_average)
@@ -29,7 +29,7 @@ for p in probabilities:
 r = 5
 N = 5
 for p in probabilities:
-    results_5_sim = multiple_sim(gen, r, N, p, runs)
+    results_5_sim = multiple_sim(gen, r, N, p, runs, extended=True)
     d_zero_msg_5_sim_axis.append(results_5_sim.total_mean)
     d_zero_msg_5_sim_ci.append(results_5_sim.ci_total_mean)
     msg_5_graph_avgs.append(results_5_sim.graph_average)
