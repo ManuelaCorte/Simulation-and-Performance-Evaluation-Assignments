@@ -1,12 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt 
-import scipy.stats as stats #type: ignore
-
-def compute_ci(data, level) -> float:
-    std = np.std(data)
-    eta = stats.norm.ppf(0.5 + level/2)
-    return eta*std / np.sqrt(len(data)) 
-    
+from fn.compute_ci import compute_ci
 
 def compute_pi_base(N: int, gen) -> None:
     x_coordinates = gen.uniform(-1, 1, N)
@@ -18,11 +12,11 @@ def compute_pi_base(N: int, gen) -> None:
     print(f"Mean: {4*mean} +-{ci}, CI size: {2*ci}")  
 
     f, ax = plt.subplots(1, 1, figsize=(10, 10))
-    ax.scatter(x_coordinates[distances], y_coordinates[distances], color='blue', s=1) #type: ignore
-    ax.scatter(x_coordinates[~distances], y_coordinates[~distances], color='red', s=1) #type: ignore
-    circle = plt.Circle((0, 0), 1, color='black', fill=False, linewidth=2) #type: ignore
-    ax.add_patch(circle) #type: ignore
-    ax.set_title('Estimation of pi') #type: ignore
+    ax.scatter(x_coordinates[distances], y_coordinates[distances], color='blue', s=1) 
+    ax.scatter(x_coordinates[~distances], y_coordinates[~distances], color='red', s=1) 
+    circle = plt.Circle((0, 0), 1, color='black', fill=False, linewidth=2) 
+    ax.add_patch(circle) 
+    ax.set_title('Estimation of pi') 
     plt.show()
 
 def compute_pi_conditioning_antithetic(N, gen) -> None:

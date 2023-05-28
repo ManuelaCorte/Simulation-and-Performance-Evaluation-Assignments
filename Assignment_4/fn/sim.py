@@ -52,7 +52,7 @@ def sim(gen, r, N, p, logging = False, expected_nodes_with_msg_per_row = 0.0, ex
     if gen.uniform() < p: 
       if logging: print(f"message passing from {r-1},{j} to D failed")
       continue
-    d_msgs += 1
+    d_msgs += 1 # Not sure if it should be d_msg=1 instead 
 
   if logging:
     print('final')

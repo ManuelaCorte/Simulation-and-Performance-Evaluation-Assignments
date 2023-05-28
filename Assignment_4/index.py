@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import numpy as np
 import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
@@ -7,26 +8,32 @@ gen = np.random.default_rng(seed=41)
 
 p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
-runs = 10000
+runs = 1000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_5_sim_axis = []
 
+d_zero_msg_2_sim_subset = []
+d_zero_msg_5_sim_subset = []
+p_subset = np.arange(0.0, 1.0, 0.1)
+
+
 r = 2
 N = 2
 for index, p in enumerate(p_axis):
-  runs_when_d_is_zero = multiple_sim(gen, r, N, p, runs)
+  runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
   runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
-  print(f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_2_expected_axis[index]:.3f}, sim = {runs_when_d_is_zero_perc:.3f}")
+  print(f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_2_expected_axis[index]:.3f}, sim = {mean:.3f} +- {ci:.3f}")
   d_zero_msg_2_sim_axis.append(runs_when_d_is_zero_perc)
 
 r = 5
 N = 5
 for index, p in enumerate(p_axis):
-  runs_when_d_is_zero = multiple_sim(gen, r, N, p, runs)
+  runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
   runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
-  print(f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_5_expected_axis[index]:.3f}, sim = {runs_when_d_is_zero_perc:.3f}")
+  print(f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_5_expected_axis[index]:.3f}, sim = {mean:.3f} +- {ci:.3f}")
   d_zero_msg_5_sim_axis.append(runs_when_d_is_zero_perc)
+
 
 f, ax = plt.subplots(1, 1, figsize=(10,10))
 ax.plot(p_axis, d_zero_msg_2_sim_axis, label='simulated value')
