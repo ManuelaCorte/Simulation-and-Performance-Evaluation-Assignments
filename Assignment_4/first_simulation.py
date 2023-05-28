@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
 
 gen = np.random.default_rng(seed=41)
-probabilities = np.arange(0.0, 1.0, 0.05)
+probabilities = np.arange(0.0, 1.0, 0.1)
 
-runs = 1000
+runs = 10000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_2_sim_ci = []
@@ -22,6 +22,8 @@ for p in probabilities:
     results_2_sim = multiple_sim(gen, r, N, p, runs)
     d_zero_msg_2_sim_axis.append(results_2_sim.total_mean)
     d_zero_msg_2_sim_ci.append(results_2_sim.ci_total_mean)
+    msg_2_graph_avgs.append(results_2_sim.graph_average)
+    msg_2_graph_cis.append(results_2_sim.ci_graph)
 
 
 r = 5
@@ -30,6 +32,8 @@ for p in probabilities:
     results_5_sim = multiple_sim(gen, r, N, p, runs)
     d_zero_msg_5_sim_axis.append(results_5_sim.total_mean)
     d_zero_msg_5_sim_ci.append(results_5_sim.ci_total_mean)
+    msg_5_graph_avgs.append(results_5_sim.graph_average)
+    msg_5_graph_cis.append(results_5_sim.ci_graph)
 
 f, ax = plt.subplots(1, 1, figsize=(10, 10))
 ax.errorbar(
@@ -54,6 +58,38 @@ ax.set_title("error rates")
 ax.set_xlabel("p")
 ax.set_ylabel("p no message arrived to D")
 ax.legend()
+print(msg_2_graph_cis)
+print(d_zero_msg_2_sim_ci)
+f, ax = plt.subplots(1, 1, figsize=(20, 25))
+for index, p in enumerate(probabilities):
+    ax.errorbar(
+        np.arange(1, 3),
+        msg_2_graph_avgs[index],
+        yerr=msg_2_graph_cis[index],
+        label=f"p: {p}",
+        linestyle="dotted",
+        marker="o",
+        markersize=2,
+    )
+ax.set_title(f"average reached nodes per layer r = 2, N = 2")
+ax.set_xlabel("r")
+ax.set_ylabel("# nodes")
+ax.legend()
 
-plt.tight_layout()
+f, ax = plt.subplots(1, 1, figsize=(20, 25))
+for index, p in enumerate(probabilities):
+    ax.errorbar(
+        np.arange(1, 6),
+        msg_5_graph_avgs[index],
+        yerr=msg_5_graph_cis[index],
+        label=f"p: {p}",
+        linestyle="dotted",
+        marker="o",
+        markersize=2,
+    )
+ax.set_title(f"average reached nodes per layer r = 5, N = 5")
+ax.set_xlabel("r")
+ax.set_ylabel("# nodes")
+ax.legend()
+
 plt.show()

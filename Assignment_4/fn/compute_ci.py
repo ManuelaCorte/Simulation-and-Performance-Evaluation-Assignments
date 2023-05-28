@@ -18,7 +18,9 @@ def compute_multinomial_ci(data, level) -> float:
     return eta * se
 
 
-def compute_graph_ci(data, level) -> List[float]:
-    std = np.std(data, axis=0)
+def compute_graph_ci(data, level) -> float:
+    counts = [type(x) for x in data[:,][0] if x == 0]
+    p = len(counts) / len(data[:,])
+    se = np.sqrt(p * (1 - p) / len(data[:,]))
     eta = stats.norm.ppf(0.5 + level / 2)
-    return eta * std / np.sqrt(len(data))
+    return eta * se

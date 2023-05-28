@@ -31,9 +31,9 @@ def multiple_sim(gen, r, N, p, runs, logging=False):
     runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
     ci = compute_multinomial_ci(results, 0.95)
 
-    graph_average = np.mean(graphs, axis=0)
+    graph_average = [np.sum(graphs[:, i, :]) / runs for i in range(N)]
     ci_graph = [compute_graph_ci(graphs[:, i, :], 0.95) for i in range(N)]
-
+    # print(ci_graph[0])
     if logging:
         mean = sum / runs
         print(
