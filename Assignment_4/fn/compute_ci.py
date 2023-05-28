@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 from scipy import stats
 
@@ -15,3 +16,9 @@ def compute_multinomial_ci(data, level) -> float:
     se = np.sqrt(p * (1 - p) / len(data))  # standard error
     eta = stats.norm.ppf(0.5 + level / 2)
     return eta * se
+
+
+def compute_graph_ci(data, level) -> List[float]:
+    std = np.std(data, axis=0)
+    eta = stats.norm.ppf(0.5 + level / 2)
+    return eta * std / np.sqrt(len(data))

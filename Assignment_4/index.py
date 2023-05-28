@@ -11,24 +11,26 @@ runs = 1000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_5_sim_axis = []
+results_2_sim = {}
+results_5_sim = {}
 
 r = 2
 N = 2
 for index, p in enumerate(p_axis):
-    runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
+    results_2_sim = multiple_sim(gen, r, N, p, runs)
     print(
-        f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_2_expected_axis[index]:.3f}, sim = {mean:.3f} +- {ci:.3f}"
+        f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_2_expected_axis[index]:.3f}, sim = {results_2_sim.total_mean:.3f} +- {results_2_sim.ci_total_mean:.3f}"
     )
-    d_zero_msg_2_sim_axis.append(mean)
+    d_zero_msg_2_sim_axis.append(results_2_sim.total_mean)
 
 r = 5
 N = 5
 for index, p in enumerate(p_axis):
-    runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
+    results_5_sim = multiple_sim(gen, r, N, p, runs)
     print(
-        f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_5_expected_axis[index]:.3f}, sim = {mean:.3f} +- {ci:.3f}"
+        f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_5_expected_axis[index]:.3f}, sim = {results_5_sim.total_mean:.3f} +- {results_5_sim.ci_total_mean:.3f}"
     )
-    d_zero_msg_5_sim_axis.append(mean)
+    d_zero_msg_5_sim_axis.append(results_5_sim.total_mean)
 
 
 f, ax = plt.subplots(1, 1, figsize=(10, 10))

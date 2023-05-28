@@ -79,4 +79,4 @@ def sim(
         print(
             f"expected messages arrived to D {expected_msg_arrived_to_d:.2f}, found {d_msgs}"
         )
-    return d_msgs
+    return d_msgs, graph_msgs

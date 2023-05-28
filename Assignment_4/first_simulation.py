@@ -1,4 +1,3 @@
-from matplotlib import lines
 import numpy as np
 import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
@@ -12,20 +11,25 @@ d_zero_msg_2_sim_axis = []
 d_zero_msg_2_sim_ci = []
 d_zero_msg_5_sim_axis = []
 d_zero_msg_5_sim_ci = []
+msg_2_graph_avgs = []
+msg_5_graph_avgs = []
+msg_2_graph_cis = []
+msg_5_graph_cis = []
 
 r = 2
 N = 2
 for p in probabilities:
-    runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
-    d_zero_msg_2_sim_axis.append(mean)
-    d_zero_msg_2_sim_ci.append(ci)
+    results_2_sim = multiple_sim(gen, r, N, p, runs)
+    d_zero_msg_2_sim_axis.append(results_2_sim.total_mean)
+    d_zero_msg_2_sim_ci.append(results_2_sim.ci_total_mean)
+
 
 r = 5
 N = 5
 for p in probabilities:
-    runs_when_d_is_zero, mean, ci = multiple_sim(gen, r, N, p, runs)
-    d_zero_msg_5_sim_axis.append(mean)
-    d_zero_msg_5_sim_ci.append(ci)
+    results_5_sim = multiple_sim(gen, r, N, p, runs)
+    d_zero_msg_5_sim_axis.append(results_5_sim.total_mean)
+    d_zero_msg_5_sim_ci.append(results_5_sim.ci_total_mean)
 
 f, ax = plt.subplots(1, 1, figsize=(10, 10))
 ax.errorbar(
