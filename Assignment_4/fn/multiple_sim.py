@@ -5,8 +5,11 @@ from fn.sim import sim
 import numpy as np
 
 
-def multiple_sim(gen, r, N, p, runs, logging=False, extended=False):
+def multiple_sim(r, N, p, runs, logging=False, extended=False):
     # expected
+    seeds = np.random.default_rng(seed=42) 
+    seed = int(seeds.uniform(0, 1000000))
+    gen = np.random.default_rng(seed=seed)
     expected_nodes_with_msg_per_row = [(1 - p) * N]
     for i in range(r):
         expected_nodes_with_msg_per_row.append(

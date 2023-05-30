@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
 from fn.get_data_from_csv import get_data_from_csv
 
-gen = np.random.default_rng(seed=41)
-
 p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
 runs = 10000
@@ -17,7 +15,7 @@ results_5_sim = {}
 r = 2
 N = 2
 for index, p in enumerate(p_axis):
-    results_2_sim = multiple_sim(gen, r, N, p, runs)
+    results_2_sim = multiple_sim(r, N, p, runs)
     print(
         f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_2_expected_axis[index]:.3f}, sim = {results_2_sim.total_mean:.3f} +- {results_2_sim.ci_total_mean:.3f}"
     )
@@ -26,7 +24,7 @@ for index, p in enumerate(p_axis):
 r = 5
 N = 5
 for index, p in enumerate(p_axis):
-    results_5_sim = multiple_sim(gen, r, N, p, runs)
+    results_5_sim = multiple_sim(r, N, p, runs)
     print(
         f"p error = {p:.3f}, p no msg arrived expect = {d_zero_msg_5_expected_axis[index]:.3f}, sim = {results_5_sim.total_mean:.3f} +- {results_5_sim.ci_total_mean:.3f}"
     )
