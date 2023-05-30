@@ -25,7 +25,7 @@ def sim(
             if logging:
                 print(f"message passing from S to {0},{j} failed")
             continue
-        graph_msgs[0][j] += 1
+        graph_msgs[0][j] = 1
 
     if logging:
         print("from S")
@@ -47,7 +47,7 @@ def sim(
                     if logging:
                         print(f"message passing from {i},{j} to {i+1},{h} failed")
                     continue
-                graph_msgs[i + 1][h] += 1
+                graph_msgs[i + 1][h] = 1
 
         if logging:
             old_nodes_with_msg = count_positive_elem(graph_msgs[i], N)
@@ -70,7 +70,7 @@ def sim(
             if logging:
                 print(f"message passing from {r-1},{j} to D failed")
             continue
-        d_msgs += 1  # Not sure if it should be d_msg=1 instead
+        d_msgs = 1  # Not sure if it should be d_msg=1 instead
 
     if logging:
         print("final")

@@ -5,7 +5,7 @@ from fn.multiple_sim import multiple_sim
 gen = np.random.default_rng(seed=41)
 probabilities = np.arange(0.0, 1.0, 0.1)
 
-runs = 10000
+runs = 1000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_2_sim_ci = []
@@ -58,8 +58,7 @@ ax.set_title("error rates")
 ax.set_xlabel("p")
 ax.set_ylabel("p no message arrived to D")
 ax.legend()
-print(msg_2_graph_cis)
-print(d_zero_msg_2_sim_ci)
+
 f, ax = plt.subplots(1, 1, figsize=(20, 25))
 for index, p in enumerate(probabilities):
     ax.errorbar(
@@ -73,10 +72,12 @@ for index, p in enumerate(probabilities):
     )
 ax.set_title(f"average reached nodes per layer r = 2, N = 2")
 ax.set_xlabel("r")
-ax.set_ylabel("# nodes")
+ax.set_ylabel("avg # nodes")
+ax.set_xticks(np.arange(1, 3))
+
 ax.legend()
 
-f, ax = plt.subplots(1, 1, figsize=(20, 25))
+f, ax = plt.subplots(1, 1)
 for index, p in enumerate(probabilities):
     ax.errorbar(
         np.arange(1, 6),
@@ -89,7 +90,8 @@ for index, p in enumerate(probabilities):
     )
 ax.set_title(f"average reached nodes per layer r = 5, N = 5")
 ax.set_xlabel("r")
-ax.set_ylabel("# nodes")
+ax.set_ylabel("avg # nodes")
+ax.set_xticks(np.arange(1, 6))
 ax.legend()
 
 plt.show()

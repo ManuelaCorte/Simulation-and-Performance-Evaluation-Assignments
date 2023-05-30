@@ -15,7 +15,7 @@ def multiple_sim(gen, r, N, p, runs, logging=False, extended=False):
     expected_msg_arrived_to_d = (1 - p) * expected_nodes_with_msg_per_row[r - 1]
 
     sum = 0
-    results = []
+    results = np.zeros(shape=(runs, 1))
     graphs = np.zeros(shape=(runs, r, N))
     runs_when_d_is_zero = 0
     
@@ -27,7 +27,7 @@ def multiple_sim(gen, r, N, p, runs, logging=False, extended=False):
         sum += new_sim
         if new_sim < 1:
             runs_when_d_is_zero += 1
-        results.append(new_sim)
+        results[i] = new_sim
 
     runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
     ci = compute_multinomial_ci(results, 0.95)
