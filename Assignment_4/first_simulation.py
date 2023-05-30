@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
 
 gen = np.random.default_rng(seed=41)
-probabilities = np.arange(0.0, 1.0, 0.1)
+probabilities = np.arange(0.0, 1.1, 0.1)
 
 runs = 1000
 
