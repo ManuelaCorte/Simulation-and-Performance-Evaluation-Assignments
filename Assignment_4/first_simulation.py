@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 from fn.multiple_sim import multiple_sim
 
 gen = np.random.default_rng(seed=41)
-probabilities = np.arange(0.0, 1.1, 0.1)
+probabilities = np.arange(0, 1.1, 0.1)
 
-runs = 10000
+runs = 1000
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_2_sim_ci = []
@@ -65,7 +65,7 @@ for index, p in enumerate(probabilities):
         np.arange(1, 3),
         msg_2_graph_avgs[index],
         yerr=msg_2_graph_cis[index],
-        label=f"p: {p:.1f}",
+        label=f"p: {p:.2f}",
         linestyle="dotted",
         marker="o",
         markersize=2,
@@ -83,7 +83,7 @@ for index, p in enumerate(probabilities):
         np.arange(1, 6),
         msg_5_graph_avgs[index],
         yerr=msg_5_graph_cis[index],
-        label=f"p: {p:.1f}",
+        label=f"p: {p:.2f}",
         linestyle="dotted",
         marker="o",
         markersize=2,

@@ -1,5 +1,5 @@
 from numpy import dtype
-from fn.compute_ci import compute_multinomial_ci, compute_graph_ci
+from fn.compute_ci import compute_multinomial_ci, compute_binomial_ci
 from fn.results import Results
 from fn.sim import sim
 import numpy as np
@@ -33,15 +33,14 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
         results[i] = new_sim
 
     runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
-    ci = compute_multinomial_ci(results, 0.95)
+    ci = compute_binomial_ci(results, 0.95)
 
     if extended:
-        graph_average = [np.sum(graphs[:, i, :]) / runs for i in range(N)]
-        ci_graph = [compute_graph_ci(graphs[:, i, :], 0.95) for i in range(N)]
+        graph_average = [np.sum(graphs[:, i, :]) / runs for i in range(r)]
+        ci_graph = [compute_multinomial_ci(graphs[:, i, :], 0.95) for i in range(r)]
     else:
         graph_average = []
         ci_graph = []
-    # print(ci_graph[0])
     if logging:
         mean = sum / runs
         print(
