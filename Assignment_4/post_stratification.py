@@ -4,6 +4,7 @@
 
 from math import e
 import numpy as np
+from fn.get_data_from_csv import get_data_from_csv
 from fn.multiple_sim import multiple_sim
 import scipy.stats as stats
 import matplotlib.pyplot as plt
@@ -19,6 +20,7 @@ def compute_ci(data, level, n_th, n) -> float:
     eta = stats.norm.ppf(1-(1-level)/2)
     return eta*np.sqrt(var/n_stratus)
 
+p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
 runs = 1000
 probs = np.arange(0, 1, 0.1)
@@ -62,7 +64,7 @@ ax.errorbar(
     probs,
     est_2,
     yerr=est_2_ci,
-    label="r = 2, N = 2 simulation",
+    label="base simulation",
     linestyle="dotted",
     marker="o",
     markersize=2,
@@ -71,11 +73,15 @@ ax.errorbar(
     probs,
     est_2_strat,
     yerr=est_2_strat_ci,
-    label="r = 2, N = 2 post stratification",
+    label=" post stratification",
     linestyle="dotted",
     marker="o",
     markersize=2,
 )
+ax.plot(p_axis, d_zero_msg_2_expected_axis, label="theoretical")
+ax.set_title("Comparison of theoretical, simulated and post stratified results for r=2, N=2")
+ax.xaxis.set_label_text("p")
+ax.yaxis.set_label_text("p no messages reached D") 
 ax.legend()
 
 r = 5
@@ -116,20 +122,24 @@ ax.errorbar(
     probs,
     est_5,
     yerr=est_5_ci,
-    label="r = 5, N = 5 simulation",
+    label="base simulation",
     linestyle="dotted",
     marker="o",
-    markersize=5,
+    markersize=2,
 )
 ax.errorbar(
     probs,
     est_5_strat,
     yerr=est_5_strat_ci,
-    label="r = 5, N = 5 post stratification",
+    label="post stratification",
     linestyle="dotted",
     marker="o",
     markersize=2,
 )
+ax.plot(p_axis, d_zero_msg_5_expected_axis, label="theoretical")
+ax.set_title("Comparison of theoretical, simulated and post stratified results for r=5, N=5")
+ax.xaxis.set_label_text("p")
+ax.yaxis.set_label_text("p no messages reached D")
 ax.legend()
 plt.show()
 

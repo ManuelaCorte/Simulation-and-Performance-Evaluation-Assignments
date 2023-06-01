@@ -1,9 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from fn.get_data_from_csv import get_data_from_csv
 from fn.multiple_sim import multiple_sim
 
 gen = np.random.default_rng(seed=41)
 probabilities = np.arange(0, 1.1, 0.1)
+
+p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
 runs = 1000
 
@@ -54,6 +57,8 @@ ax.errorbar(
     marker="o",
     markersize=2,
 )
+ax.plot(p_axis, d_zero_msg_2_expected_axis, label="r = 2, N = 2 theoretical")
+ax.plot(p_axis, d_zero_msg_5_expected_axis, label="r = 5, N = 5 theoretical")
 ax.set_title("error rates")
 ax.set_xlabel("p")
 ax.set_ylabel("p no message arrived to D")
