@@ -1,6 +1,6 @@
 import re
 from numpy import dtype
-from fn.compute_ci import compute_multinomial_ci, compute_binomial_ci
+from fn.compute_ci import compute_multinomial_ci_boostrap, compute_binomial_ci
 from fn.results import Results
 from fn.sim import sim
 import numpy as np
@@ -8,7 +8,7 @@ import numpy as np
 
 def multiple_sim(r, N, p, runs, logging=False, extended=False):
     # expected
-    seeds = np.random.default_rng(seed=42) 
+    seeds = np.random.default_rng(seed=42)
     seed = int(seeds.uniform(0, 1000000))
     gen = np.random.default_rng(seed=seed)
     expected_nodes_with_msg_per_row = [(1 - p) * N]
@@ -19,10 +19,10 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
     expected_msg_arrived_to_d = (1 - p) * expected_nodes_with_msg_per_row[r - 1]
 
     sum = 0
-    results = np.zeros(shape=(runs, 1)) # 1 if no message arrived to D, 0 otherwise
+    results = np.zeros(shape=(runs, 1))  # 1 if no message arrived to D, 0 otherwise
     graphs = np.zeros(shape=(runs, r, N))
     runs_when_d_is_zero = 0
-    
+
     for i in range(runs):
         new_sim, msg_graph = sim(gen, r, N, p)
         if extended:
@@ -38,7 +38,9 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
     reached_layer_one = np.zeros(shape=(runs, 1))
     if extended:
         graph_average = [np.sum(graphs[:, i, :]) / runs for i in range(r)]
-        ci_graph = [compute_multinomial_ci(graphs[:, i, :], 0.95) for i in range(r)]
+        ci_graph = [
+            compute_multinomial_ci_boostrap(graphs[:, i, :], 0.95) for i in range(r)
+        ]
         reached_layer_one = np.sum(graphs[:, 0, :], axis=1)
     else:
         graph_average = []
@@ -53,6 +55,12 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
         )
 
     res = Results(
-        results, runs_when_d_is_zero, runs_when_d_is_zero_perc, ci, graph_average, ci_graph, reached_layer_one
+        results,
+        runs_when_d_is_zero,
+        runs_when_d_is_zero_perc,
+        ci,
+        graph_average,
+        ci_graph,
+        reached_layer_one,
     )
     return res

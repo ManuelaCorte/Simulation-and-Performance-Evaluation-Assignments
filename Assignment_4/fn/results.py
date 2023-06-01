@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 import numpy as np
 
+
 @dataclass(frozen=True)
 class Results:
     results: np.ndarray
