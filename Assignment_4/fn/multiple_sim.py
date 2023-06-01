@@ -1,3 +1,4 @@
+import re
 from numpy import dtype
 from fn.compute_ci import compute_multinomial_ci, compute_binomial_ci
 from fn.results import Results
@@ -18,7 +19,7 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
     expected_msg_arrived_to_d = (1 - p) * expected_nodes_with_msg_per_row[r - 1]
 
     sum = 0
-    results = np.zeros(shape=(runs, 1))
+    results = np.zeros(shape=(runs, 1)) # 1 if no message arrived to D, 0 otherwise
     graphs = np.zeros(shape=(runs, r, N))
     runs_when_d_is_zero = 0
     
@@ -30,14 +31,15 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
         sum += new_sim
         if new_sim < 1:
             runs_when_d_is_zero += 1
-        results[i] = new_sim
-
+        results[i] = 1 - new_sim
     runs_when_d_is_zero_perc = runs_when_d_is_zero / runs
     ci = compute_binomial_ci(results, 0.95)
 
+    reached_layer_one = np.zeros(shape=(runs, 1))
     if extended:
         graph_average = [np.sum(graphs[:, i, :]) / runs for i in range(r)]
         ci_graph = [compute_multinomial_ci(graphs[:, i, :], 0.95) for i in range(r)]
+        reached_layer_one = np.sum(graphs[:, 0, :], axis=1)
     else:
         graph_average = []
         ci_graph = []
@@ -51,6 +53,6 @@ def multiple_sim(r, N, p, runs, logging=False, extended=False):
         )
 
     res = Results(
-        runs_when_d_is_zero, runs_when_d_is_zero_perc, ci, graph_average, ci_graph
+        results, runs_when_d_is_zero, runs_when_d_is_zero_perc, ci, graph_average, ci_graph, reached_layer_one
     )
     return res
