@@ -1,3 +1,4 @@
+import enum
 import numpy as np
 import matplotlib.pyplot as plt
 from fn.get_data_from_csv import get_data_from_csv
@@ -60,11 +61,12 @@ ax.errorbar(
 ax.plot(p_axis, d_zero_msg_2_expected_axis, label="r = 2, N = 2 theoretical")
 ax.plot(p_axis, d_zero_msg_5_expected_axis, label="r = 5, N = 5 theoretical")
 ax.set_title("error rates")
+ax.set_xticks(probabilities)
 ax.set_xlabel("p")
 ax.set_ylabel("p no message arrived to D")
 ax.legend()
 
-f, ax = plt.subplots(1, 1, figsize=(20, 25))
+f, ax = plt.subplots(1, 1)
 for index, p in enumerate(probabilities):
     ax.errorbar(
         np.arange(1, 3),
@@ -79,8 +81,12 @@ ax.set_title(f"average reached nodes per layer r = 2, N = 2")
 ax.set_xlabel("r")
 ax.set_ylabel("avg # nodes")
 ax.set_xticks(np.arange(1, 3))
-
 ax.legend()
+
+for i, p in enumerate(probabilities):
+    print(f"r=2, N=2, p: {p:.2f}")
+    for j in range(len(msg_2_graph_avgs[i])):
+        print(f"\tavg layer {j}: {msg_2_graph_avgs[i][j]}+-{msg_2_graph_cis[i][j]}")
 
 f, ax = plt.subplots(1, 1)
 for index, p in enumerate(probabilities):
@@ -98,5 +104,11 @@ ax.set_xlabel("r")
 ax.set_ylabel("avg # nodes")
 ax.set_xticks(np.arange(1, 6))
 ax.legend()
+
+
+for i, p in enumerate(probabilities):
+    print(f"r=5, N=5, p: {p:.2f}")
+    for j in range(len(msg_5_graph_avgs[i])):
+        print(f"\tavg layer {j}: {msg_5_graph_avgs[i][j]}+-{msg_5_graph_cis[i][j]}")
 
 plt.show()

@@ -70,7 +70,7 @@ def compute_pi_strafied(N, gen, num_sim, plot=False) -> None:
     print(f"Mean: {mean}+-{ci}, CI size: {2*ci}")
 
 
-N = 1000000  # number of points
+N = 100000  # number of points
 gen = np.random.default_rng(seed=31415)
 ci_level = 0.95
 number_of_simulation = 1000
