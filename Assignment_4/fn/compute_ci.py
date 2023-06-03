@@ -55,7 +55,7 @@ def compute_multinomial_ci(data, level) -> float:
 # We use the number of nodes reached in layer one as the stratification variable
 # We know the theoretical distribution of this value as each link is a bernoulli distribution of parameter 1-p
 # So overall the number of nodes reached in layer one is a binomial distribution of parameters N and 1-p
-# Since we can't use the provivded confidence interval for the binomial that adjusts for the fact that the number of successes can the very low 
+# Since we can't use the provivded confidence interval for the binomial that adjusts for the fact that the number of successes can the very low
 # we use the rule of three method to compute the confidence interval
 def compute_ci_stratification(data, level, n_th, n) -> float:
     n_stratus = len(data)
@@ -66,6 +66,6 @@ def compute_ci_stratification(data, level, n_th, n) -> float:
         (n_th[i] / n) ** 2 * (stratum_var[i] / n_sim[i]) for i in range(n_stratus)
     )
     if var == 0:
-        return 3/np.sum(n_sim)
+        return 3 / np.sum(n_sim)
     eta = stats.norm.ppf(1 - (1 - level) / 2)
     return eta * np.sqrt(var / n_stratus)

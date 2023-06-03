@@ -1,4 +1,5 @@
 import enum
+from matplotlib import axis
 import numpy as np
 import matplotlib.pyplot as plt
 from fn.get_data_from_csv import get_data_from_csv
@@ -10,6 +11,7 @@ probabilities = np.arange(0, 1.1, 0.1)
 p_axis, d_zero_msg_2_expected_axis, d_zero_msg_5_expected_axis = get_data_from_csv()
 
 runs = 1000
+extended = False
 
 d_zero_msg_2_sim_axis = []
 d_zero_msg_2_sim_ci = []
@@ -39,12 +41,34 @@ for p in probabilities:
     msg_5_graph_avgs.append(results_5_sim.graph_average)
     msg_5_graph_cis.append(results_5_sim.ci_graph)
 
+
+if extended:
+    r = 2
+    N = 5
+    res_2_5 = []
+    axis_2_5 = []
+    ci_2_5 = []
+    for p in probabilities:
+        res_2_5 = multiple_sim(r, N, p, runs, extended=True)
+        axis_2_5.append(res_2_5.total_mean)
+        ci_2_5.append(res_2_5.ci_total_mean)
+
+    r = 5
+    N = 2
+    res_5_2 = []
+    axis_5_2 = []
+    ci_5_2 = []
+    for p in probabilities:
+        res_2_5 = multiple_sim(r, N, p, runs, extended=True)
+        axis_5_2.append(res_2_5.total_mean)
+        ci_5_2.append(res_2_5.ci_total_mean)
+
 f, ax = plt.subplots(1, 1, figsize=(10, 10))
 ax.errorbar(
     probabilities,
     d_zero_msg_2_sim_axis,
     yerr=d_zero_msg_2_sim_ci,
-    label="r = 2, N = 2",
+    label="r = 5, N = 2",
     linestyle="dotted",
     marker="o",
     markersize=2,
@@ -53,13 +77,36 @@ ax.errorbar(
     probabilities,
     d_zero_msg_5_sim_axis,
     yerr=d_zero_msg_5_sim_ci,
-    label="r = 5, N = 5",
+    label="r = 2, N = 5",
     linestyle="dotted",
     marker="o",
     markersize=2,
 )
-ax.plot(p_axis, d_zero_msg_2_expected_axis, label="r = 2, N = 2 theoretical")
-ax.plot(p_axis, d_zero_msg_5_expected_axis, label="r = 5, N = 5 theoretical")
+
+if extended:
+    ax.errorbar(
+        probabilities,
+        axis_2_5,
+        yerr=ci_2_5,
+        label="r = 2, N = 5",
+        linestyle="dotted",
+        marker="o",
+        markersize=2,
+    )
+
+    ax.errorbar(
+        probabilities,
+        axis_5_2,
+        yerr=ci_5_2,
+        label="r = 5, N = 2",
+        linestyle="dotted",
+        marker="o",
+        markersize=2,
+    )
+
+if not extended:
+    ax.plot(p_axis, d_zero_msg_2_expected_axis, label="r = 2, N = 2 theoretical")
+    ax.plot(p_axis, d_zero_msg_5_expected_axis, label="r = 5, N = 5 theoretical")
 ax.set_title("error rates")
 ax.set_xticks(probabilities)
 ax.set_xlabel("p")

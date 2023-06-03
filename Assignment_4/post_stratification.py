@@ -33,7 +33,7 @@ for p in probs:
         if strat_values.shape[0] == 0:
             strat_values = np.array([0])
         stratified_2.append(strat_values)
-        
+
     p_est = [len(stratified_2[i]) / runs for i in range(N + 1)]
     p_est = np.array(p_est)
     # print(f'p: {p_est}')
@@ -41,7 +41,7 @@ for p in probs:
     stratified_2_means = [np.mean(stratified_2[i]) for i in range(N + 1)]
     est = 1 / runs * np.sum([n_th[i] * stratified_2_means[i] for i in range(N + 1)])
     ci = compute_ci_stratification(stratified_2, 0.95, n_th, runs)
-    
+
     est_2.append(res.total_mean)
     est_2_ci.append(res.ci_total_mean)
     est_2_strat.append(est)
