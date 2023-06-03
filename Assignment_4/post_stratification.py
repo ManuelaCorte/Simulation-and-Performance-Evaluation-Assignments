@@ -18,7 +18,7 @@ est_2 = []
 est_2_ci = []
 est_2_strat = []
 est_2_strat_ci = []
-
+ratio_2 = []
 for p in probs:
     stratified_2 = []
     res = multiple_sim(r, N, p, runs, extended=True)
@@ -46,37 +46,11 @@ for p in probs:
     est_2_ci.append(res.ci_total_mean)
     est_2_strat.append(est)
     est_2_strat_ci.append(ci)
+    ratio_2.append(res.ci_total_mean / ci)
     print(
-        f"Prob: {p:.2f}, est: {est }+-{ci} expected: {res.total_mean}+-{res.ci_total_mean}"
+        f"Prob: {p:.2f}, est: {est }+-{ci} expected: {res.total_mean}+-{res.ci_total_mean} ci_ratio: {res.ci_total_mean / ci}"
     )
-
-f, ax = plt.subplots(1, 1, figsize=(10, 10))
-ax.errorbar(
-    probs,
-    est_2,
-    yerr=est_2_ci,
-    label="base simulation",
-    linestyle="dotted",
-    marker="o",
-    markersize=2,
-)
-ax.errorbar(
-    probs,
-    est_2_strat,
-    yerr=est_2_strat_ci,
-    label=" post stratification",
-    linestyle="dotted",
-    marker="o",
-    markersize=2,
-)
-ax.plot(p_axis, d_zero_msg_2_expected_axis, label="theoretical")
-ax.set_title(
-    "Comparison of theoretical, simulated and post stratified results for r=2, N=2"
-)
-ax.xaxis.set_label_text("p")
-ax.yaxis.set_label_text("p no messages reached D")
-ax.legend()
-
+print(f"average ratio: {np.mean(ratio_2)}")
 r = 5
 N = 5
 
@@ -84,6 +58,7 @@ est_5 = []
 est_5_ci = []
 est_5_strat = []
 est_5_strat_ci = []
+ratio_5 = []
 
 for p in probs:
     stratified_5 = []
@@ -110,16 +85,37 @@ for p in probs:
     est_5_ci.append(res.ci_total_mean)
     est_5_strat.append(est)
     est_5_strat_ci.append(ci)
+    ratio_5.append(res.ci_total_mean / ci)
     print(
-        f"Prob: {p:.2f}, est: {est }+-{ci} expected: {res.total_mean}+-{res.ci_total_mean}"
+        f"Prob: {p:.2f}, est: {est }+-{ci} expected: {res.total_mean}+-{res.ci_total_mean} ci_ratio: {res.ci_total_mean / ci}"
     )
-
+print(f"average ratio: {np.mean(ratio_5)}")
 f, ax = plt.subplots(1, 1, figsize=(10, 10))
+ax.errorbar(
+    probs,
+    est_2,
+    yerr=est_2_ci,
+    label="base simulation r=2 N=2 ",
+    linestyle="dotted",
+    marker="o",
+    markersize=2,
+)
+ax.errorbar(
+    probs,
+    est_2_strat,
+    yerr=est_2_strat_ci,
+    label=" post stratification r=2 N=2",
+    linestyle="dotted",
+    marker="o",
+    markersize=2,
+)
+ax.plot(p_axis, d_zero_msg_2_expected_axis, label="theoretical r=2 N=2")
+
 ax.errorbar(
     probs,
     est_5,
     yerr=est_5_ci,
-    label="base simulation",
+    label="base simulation r=5 N=5",
     linestyle="dotted",
     marker="o",
     markersize=2,
@@ -128,16 +124,17 @@ ax.errorbar(
     probs,
     est_5_strat,
     yerr=est_5_strat_ci,
-    label="post stratification",
+    label="post stratification r=5 N=5",
     linestyle="dotted",
+    color="blue",
     marker="o",
     markersize=2,
 )
-ax.plot(p_axis, d_zero_msg_5_expected_axis, label="theoretical")
-ax.set_title(
-    "Comparison of theoretical, simulated and post stratified results for r=5, N=5"
-)
+ax.plot(p_axis, d_zero_msg_5_expected_axis, label="theoretical r=5 N=5", color="yellow")
+
+ax.set_title("Comparison of theoretical, simulated and post stratified results")
 ax.xaxis.set_label_text("p")
 ax.yaxis.set_label_text("p no messages reached D")
 ax.legend()
+
 plt.show()
