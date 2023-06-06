@@ -12,7 +12,8 @@ def plot_histogram(data, title):
     ax.legend()
 
 
-def compute_pi_base(N: int, gen, num_sim, plot=False) -> None:
+def compute_pi_base(N: int, num_sim, plot=False) -> None:
+    gen = np.random.default_rng(seed=314)
     pi = np.zeros(num_sim)
     for i in range(num_sim):
         x_coordinates = gen.uniform(-1, 1, N)
@@ -33,28 +34,32 @@ def compute_pi_base(N: int, gen, num_sim, plot=False) -> None:
             ax.add_patch(circle)
             ax.set_title("Estimation of pi")
     if plot:
+        plot_histogram(4 * distances, "Distribution on samples for pi base estimation")
         plot_histogram(4 * pi, "Estimation of pi base")
     mean = 4 * np.mean(pi)
     ci = compute_ci(pi, 0.95)
-    print(f"Mean: {mean} +-{ci}, CI size: {2*ci}")
+    return mean , ci
 
 
-def compute_pi_conditioning_antithetic(N, gen, num_sim, plot=False) -> None:
+def compute_pi_conditioning_antithetic(N, num_sim, plot=False) -> None:
+    gen = np.random.default_rng(seed=31415)
     pi = np.zeros(num_sim)
     for i in range(num_sim):
         uniform_samples = gen.uniform(0, 1, N)
-        sample = np.sqrt(1 - uniform_samples**2) + np.sqrt(
+        samples = np.sqrt(1 - uniform_samples**2) + np.sqrt(
             1 - (1 - uniform_samples) ** 2
         )
-        pi[i] = np.mean(sample)
+        pi[i] = np.mean(samples)
     if plot:
+        plot_histogram(2 * samples, "Distribution of samples for pi antithetic")
         plot_histogram(2 * pi, "Estimation of pi antithetic")
     mean = 2 * np.mean(pi)
     ci = compute_ci(pi, 0.95)
-    print(f"Mean: {mean} +-{ci}, CI size: {2*ci}")
+    return mean , ci
 
 
-def compute_pi_strafied(N, gen, num_sim, plot=False) -> None:
+def compute_pi_strafied(N, num_sim, plot=False) -> None:
+    gen = np.random.default_rng(seed=3141529)
     pi = np.zeros(num_sim)
     for i in range(num_sim):
         uniform_samples = gen.uniform(0, 1, N)
@@ -64,26 +69,35 @@ def compute_pi_strafied(N, gen, num_sim, plot=False) -> None:
         )
         pi[i] = np.mean(samples)
     if plot:
-        plot_histogram(2 * pi, "Estimation of pi strafied")
+        plot_histogram(2 * samples, "Distribution of samples for pi strafied")
+        plot_histogram(2* pi, "Estimation of pi strafied")
     mean = 2 * np.mean(pi)
     ci = compute_ci(pi, 0.95)
-    print(f"Mean: {mean}+-{ci}, CI size: {2*ci}")
+    return mean , ci
 
+# Run multiple full simulation with increasing number of points per simulation until the CI is small enough
+def multiple_runs(N, increment, number_of_simulations, estimator):
+    while True:
+        print(f"Points: {N}")
+        mean, ci = estimator(N, number_of_simulations)
+        if 2*ci < 1e-4:
+            print(f"Mean: {mean}+-{ci}, CI size: {2*ci}")
+            break
+        N += increment
 
-N = 100000  # number of points
-gen = np.random.default_rng(seed=31415)
 ci_level = 0.95
+number_of_simulation = 100
+
+# We start from different number of points based on the method to speed up the process
+multiple_runs(1000000, 10000, number_of_simulation, compute_pi_base)
+multiple_runs(100000, 1000, number_of_simulation, compute_pi_conditioning_antithetic)
+multiple_runs(10, 1, number_of_simulation, compute_pi_strafied)
+
+# Run a single simulation with a fixed number of points and plot the results
+N = 100000  # number of points
 number_of_simulation = 1000
 print(f"Theory value: {np.pi}\n")
-
-for num in range(100, number_of_simulation + 1, 100):
-    print(f"Number of simulations: {num}")
-    compute_pi_base(N, gen, num)
-    compute_pi_conditioning_antithetic(N, gen, num)
-    compute_pi_strafied(N, gen, num)
-    print()
-
-compute_pi_base(N, gen, number_of_simulation, plot=True)
-compute_pi_conditioning_antithetic(N, gen, number_of_simulation, plot=True)
-compute_pi_strafied(N, gen, number_of_simulation, plot=True)
+compute_pi_base(N, number_of_simulation, plot=True)
+compute_pi_conditioning_antithetic(N, number_of_simulation, plot=True)
+compute_pi_strafied(N, number_of_simulation, plot=True)
 plt.show()
